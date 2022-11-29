@@ -1,0 +1,37 @@
+"The Buff Banner"
+{
+	"classes"
+	{
+		"soldier"		"1"
+	}
+	"baseclass"		"buff_item"
+	"baseindex"		"129"
+	"replace"		"129 1001"
+	"quality"		"7"
+	"logname"		"buffban"
+	
+	"description"	"Buff Banner"
+	"attributes"
+	{
+		"buff_item extender"
+		{
+			"plugin"	"orion"
+			"value"		"16 113 0 0 1 1"
+		}
+		"kill eater score type"		
+		{
+			"plugin"	"tf2attributes"
+			"value"		"51"
+		}
+		"mod soldier buff type"		
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1"
+		}
+		"allowed in medieval mode"	
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1"
+		}
+	}	
+}

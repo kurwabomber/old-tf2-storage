@@ -1,0 +1,32 @@
+"The Sydney Sleeper"
+{
+	"classes"
+	{
+		"sniper"	"0"
+	}
+	"baseclass"		"sniperrifle"
+	"baseindex"		"230"
+	"replace"		"230"
+	"quality"		"7"
+	"nobots"		"1"
+	"logname"		"custom"
+	"description"	"Insert Description"
+	"attributes"
+	{		
+		"weapon_allow_inspect"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1"
+		}
+		"hotsauce on hit"
+		{
+			"plugin"	"orion"
+			"value"		"1 2"
+		}
+		"jarate duration"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"0"
+		}
+	}
+}

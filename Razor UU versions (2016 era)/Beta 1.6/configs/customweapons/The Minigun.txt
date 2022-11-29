@@ -1,0 +1,25 @@
+"minigun bot replacement"
+{
+	"classes"
+	{
+		"heavy"	"0"
+	}
+	"baseclass"		"minigun"
+	"baseindex"		"15"
+	"quality"		"7"
+	"logname"		"custom"
+	"description"	"Insert Description"
+	"attributes"
+	{		
+		"fire rate penalty"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"3"
+		}
+		"alt-fire disabled"
+		{
+			"plugin" "tf2attributes"
+			"value"		"1"
+		}
+	}
+}

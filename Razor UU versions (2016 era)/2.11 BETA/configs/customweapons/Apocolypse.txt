@@ -1,0 +1,61 @@
+"Apocolypse"
+{
+	"classes"
+	{
+		"pyro"			"2"
+	}
+	"baseclass"		"fireaxe"
+	"baseindex"		"348"
+	"quality"		"7"
+	"logname"		"custom"
+	"nobots"		"1"
+	"description"	"6% lifesteal, 220 - 395 base damage, -2400 Health Regen, 5x Slower Swing Speed. \n- Use Volcano Fragment to Keep Upgrades."
+	"attributes"
+	{
+		"provide on active"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1"
+		}
+		"lifesteal"
+		{
+			"plugin"	"dota2"
+			"value"		"0.06 0"
+		}		
+		"weapon_allow_inspect"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1"
+		}
+		"dmg penalty vs nonburning"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"6.76923077"
+		}
+		"damage bonus vs burning"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"6.76923077"
+		}
+		"SET BONUS: health regen set bonus"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"-2400"
+		}
+		"fire rate penalty"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"6"
+		}
+		"damage penalty"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1"
+		}
+		"weapon burn time reduced"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"0"
+		}
+	}
+}

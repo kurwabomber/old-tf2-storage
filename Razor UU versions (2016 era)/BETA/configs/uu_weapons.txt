@@ -1,0 +1,100 @@
+"uu_weapons"
+{
+	"Weapons"
+	{
+		"tf_weapon_cannon"						"cannon"//loose cannon
+		"tf_weapon_pipebomblauncher"			"demopipe"//stickybomb launchers
+		"tf_weapon_grenadelauncher"				"grenade"//grenade launchers
+		"tf_weapon_bottle"						"demomel"//melee
+		"tf_weapon_sword"						"demomel"//melee
+		"tf_weapon_katana"						"demomel"//melee
+		"tf_wearable_demoshield"				"democharge"
+		"tf_weapon_shotgun_primary"				"engweap"
+		"tf_weapon_shotgun"						"sprweap2"
+		"tf_weapon_shotgun_building_rescue"		"engweap_c"
+		"tf_weapon_sentry_revenge"				"engweap"
+		"tf_weapon_drg_pomson"					"rayengweap"//pomson
+		"tf_weapon_pistol"						"sprweap1"
+		"tf_weapon_mechanical_arm"				"engiecircuit"//shortcircut
+		"tf_weapon_wrench"						"engmelweap"//wrenchs
+		"tf_weapon_robot_arm"					"engmelweap"//gunslinger
+		"tf_weapon_minigun"						"minigunweap"
+		"tf_weapon_shotgun_hwg"					"sprweapH"
+		"tf_weapon_shotgun"						"sprweap2"
+		"tf_weapon_lunchbox"					"lunchbox"
+		"tf_weapon_fists"						"demomel"
+		"syringe"			"medweap"//syringe guns
+		"crusaders"					"medweap_c"//crusaders crossbow
+		"tf_weapon_medigun"						"medi"//other mediguns
+		"vacc"									"vacc"//vaccinator
+		"tf_weapon_flamethrower"				"pyroweap"//flamethrower
+		"pyroweapp"								"pyroweapp"//phlog
+		"tf_weapon_flaregun"					"pyroflareg"//flaregun
+		"scorchshot"							"pyroflaregs"//scorch shot
+		"detonator"								"pyroflaregd"//detonator
+		"tf_weapon_flaregun_revenge"			"pyroflareg2"
+		"tf_weapon_shotgun_pyro"				"shtgpyr"
+		"tf_weapon_fireaxe"						"demomel"//melee
+		"tf_weapon_shovel"						"demomel"//melee
+		"saxxy"									"demomel"//melee
+		"tf_weapon_pep_brawler_blaster"			"scoweap"//bfb
+		"tf_weapon_scattergun"					"scoweap"//stock scattergun	
+		"tf_weapon_scattergun_"					"scoweap"//other scatterguns
+		"tf_weapon_handgun_scout_secondary"		"hgweap2"//pistol
+		"tf_weapon_cleaver"						"scoclea"
+		"tf_weapon_pistol_scout"				"smgweap"
+		"tf_weapon_soda_popper"					"scoweap"//sodapopper
+		"tf_weapon_lunchbox_drink"							"lunchbox_bonk"
+		"tf_weapon_bat"							"scomelweap"
+		"tf_weapon_bat_fish"					"scomelweap"
+		"tf_weapon_sniperrifle"					"snipe"
+		"tf_weapon_sniperrifle_decap"			"snipe"
+		"tf_weapon_compound_bow"				"c_bow"
+		"tf_weapon_smg"							"smgweap"
+		"tf_weapon_jar"							"jarat"
+		"tf_weapon_jar_milk"					"jarmilk"
+		"tf_weapon_club"						"demomel"
+		"tf_weapon_rocketlauncher"				"rlauncher"//Rocket launcher
+		"tf_weapon_rocketlauncher_directhit"	"directhit"//DH
+		"tf_weapon_rocketlauncher_airstrike"	"airstrike"//Airstrike
+		"tf_weapon_particle_cannon"				"cow_m"//Cow Mangler
+		"tf_weapon_shotgun_soldier"				"sprweap(s)"
+		"tf_weapon_raygun"						"rayweap"
+		"tf_weapon_buff_shit"					"misce_"
+		"tf_wear_alishoes"						"ali_shoes"
+		"tf_weapon_revolver"					"spyweap"
+		"tf_weapon_knife"						"spymel"
+		"tf_weapon_pda_spy"						"spysap"
+		"tf_weapon_builder"						"spysap"
+		"tf_weapon_sapper"						"spysap"
+		"tf_weapon_invis"						"tf_weapon_invis"
+		"tf_weapon_buff_item"					"buffban"
+		"tf_weapon_stickbomb"   				"explmel"
+		"tf_w_gbt"   							"scomelweap_"
+		"tf_w_darws"   							"darws"
+		"tf_wearable_razorback"					"wearable"
+		"tf_weapon_sniperrifle_classic"			"snipes"	
+		"tf_weapon_parachute"					"chute"
+		"tf_weapon_laser_pointer"				"pointer"
+		"tf_wearable"							"wearable"
+		"tf_weapon_bonesaw"								"medmel"
+		"tf_powerup_bottle"						"bottle"
+		"tf_weapon_grapplinghook"				"grapplinghook"
+		"tf_weapon_handgun_scout_primary"		"scoweap2"
+		"tf_weapon_rocketlauncher_fireball"		"fireball"
+		"tf_weapon_rocketpack"					"rocketpack"
+		"tf_weapon_shotgun_primary_"			"shotgun_primary_"
+		"tf_weapon_bat_giftwrap"				"ball"//sandmans
+		"tf_weapon_bat_wood"					"ball"//sandmans
+		"test"									"test"
+		"tf_weapon_charged_smg"					"smgweapc"
+		"tf_weapon_jar_gas"						"gas"
+		"deflectora"							"deflector"
+		"tf_weapon_slap"						"demomel"
+		"l"										"l"
+		"tf_weapon_spellbook"					"spellbook"
+		"tf_weapon_breakable_sign"				"demomel"
+		"autofirebow"							"autofirebow"
+		"defense"								"builder"
+	}
+}

@@ -1,0 +1,47 @@
+"Phrases"
+{
+	//<shortname>_RaceName
+	"tbr_RaceName"
+	{
+		"en"		"Troll Bat Rider"
+	}
+
+	//skills:
+	//<shortname>_skill_<SkillNameIdentifier> for the skill name
+	//<shortname>_skill_<SkillNameIdentifier>_desc for the skill description
+	"tbr_skill_Regenerate"
+	{
+		"en"		"Regenerate"
+	}
+	"tbr_skill_Regenerate_desc"
+	{
+		"en"		"Regenerate health over time."
+	}
+
+	"tbr_skill_Arcanite"
+	{
+		"en"		"Arcanite"
+	}
+	"tbr_skill_Arcanite_desc"
+	{
+		"en"		"Your nades do extra damage."
+	}
+
+	"tbr_skill_LiquidFire"
+	{
+		"en"		"Liquid Fire"
+	}
+	"tbr_skill_LiquidFire_desc"
+	{
+		"en"		"Your nades IGNITE your enemies."
+	}
+
+	"tbr_skill_BatRider"
+	{
+		"en"		"Bat Rider"
+	}
+	"tbr_skill_BatRider_desc"
+	{
+		"en"		"Get on your Bat and ride!"
+	}
+}

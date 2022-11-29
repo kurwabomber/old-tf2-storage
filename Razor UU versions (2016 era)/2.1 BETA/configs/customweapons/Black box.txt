@@ -1,0 +1,27 @@
+"Black Box replacement"
+{
+	"classes"
+	{
+		"soldier"		"0"
+	}
+	"baseclass"		"rocketlauncher"
+	"baseindex"		"228"
+	"replace"		"228"
+	"quality"		"7"
+	"nobots"		"1"
+	"logname"		"custom"
+	"description"	"Insert Description"
+	"attributes"
+	{
+		"lifesteal"
+		{
+			"plugin"	"dota2"
+			"value"		"0.05 1"
+		}		
+		"weapon_allow_inspect"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1"
+		}
+	}
+}

@@ -1,0 +1,330 @@
+"uu_special_tweaks"
+{
+	"Special_tweaks"
+	{
+		"Armor Piercing Explosive"//1
+		{
+			"blast radius decreased"		"0.325"
+			"Damage bonus vs player"	"0.325"
+		}
+		"Army of not Many"//2
+		{
+			"clip size penalty HIDDEN"		"3.25"
+			"armor piercing damage"		"20.10"
+			"Reload time increased"		"30.00"
+			"fire rate penalty"		"37.00"
+			"maxammo primary reduced"		"3"
+			"Projectile speed decreased"		"2.30"
+		}
+		"Some Beggar Tweak"//3
+		{
+			"projectile spread angle penalty"		"2.00"
+			"can overload"		"1.00"
+			"auto fires full clip"		"1.00"
+			"extra fire rate HIDDEN"		"5.00"
+			"clip size penalty HIDDEN"		"3.00"
+			"Reload time increased"		"30.00"
+			"Reload Time Decreased Hidden"	"6.6"
+		}
+		"Some Other Beggar Tweak"//4
+		{
+			"projectile spread angle penalty"		"1.00"
+			"fire rate bonus HIDDEN"		"0.75"
+		}
+		"Medic Beggar Tweak"//5
+		{
+			"Faster reload rate SPECIAL"		"0.75"
+			"projectile spread angle penalty"		"1.00"
+		}
+		"Heavy Heavy Heavy Weapon"//6
+		{
+			"minigun spinup time increased"		"3.50"
+			"aiming movespeed decreased"		"1.0"
+			"fire rate bonus (C)"		"0.5"
+			"armor piercing damage"		"1.5"
+		}
+		"Heavy Electric Motor"//7
+		{
+			"minigun spinup time increased"		"2.00"
+			"maxammo primary reduced"		"1.00"
+			"armor piercing damage"		"2.0"
+		}
+		"Assault Weapon"//8
+		{
+			"fire rate penalty"		"1.50"
+			"weapon spread bonus"		"0.26"
+			"armor piercing damage"		"0.8"
+		}
+		"Assault Weapon(CB)"//9
+		{
+			"fire rate penalty"		"2.50"
+			"armor piercing damage"		"0.9"
+		}
+		"Bigger Caliber"//10
+		{
+			"fire rate penalty"		"3.10"
+			"Reload time increased"		"2.5"
+			"maxammo primary reduced"		"1.5"
+			"armor piercing damage"		"2.6"
+		}
+		"Bigger Little Caliber."//11
+		{
+			"fire rate penalty"		"2.10"
+			"Reload time increased"		"2.00"
+			"maxammo secondary reduced"		"1.5"
+			"armor piercing damage"		"2.0"
+		}
+		"Sentry Heavy Motor"//12
+		{
+			"sentry extra damage bonus"		"3.00"
+			"move speed penalty"		"2.5"
+		}
+		"Sentry Bigger Caliber"//13
+		{
+			"sentry extra damage bonus"		"3.50"
+			"engy sentry fire rate decreased"		"2.00"
+			"maxammo metal reduced"		"1.00"
+		}
+		"Concentrated Fire"//14
+		{
+			"mod ammo per shot"		"1.00"
+			"armor piercing damage"		"1.25"
+		}
+		"Higher Pressure"//15
+		{
+			"flame ammopersec increased"		"1.00"
+			"maxammo primary reduced"		"1.70"
+			"armor piercing damage"		"2.00"
+			"afterburn dmg increased"		"3.00"
+		}
+		"Temperature rise"//16
+		{
+			"flame ammopersec increased"		"1.00"
+			"armor piercing damage"		"2.00"
+		}
+		"Light Flames"//17
+		{
+			"flame size bonus"			"1"
+			"Flame Gravity"				"120"
+			"flame_drag"				"1"
+			"flame_spread_degree"		"1"
+			"weapon burn time reduced"	"2"
+			"weapon burn dmg reduced"	"1.65"
+			"crit_dmg_falloff"			"1"
+		}
+		"Bigger Impact"//18
+		{
+			"rocket jump damage increased"		"4.00"
+			"melee attack rate penalty"	"1.0"
+			"damage bonus HIDDEN(a)"		"2.5"
+		}
+		"Fast Shot"//19
+		{
+			"fire rate bonus HIDDEN"		"1.00"
+			"projectile spread angle penalty"	"0.66667"
+			"spread penalty"		"3.00"
+		}
+		"Fast Laser Shot"//20
+		{
+			"fire rate bonus HIDDEN"		"1.00"
+			"Reload time increased"			"2.00"
+		}
+		"Heavy Laser Shot"//21
+		{
+			"armor piercing damage"			"1.00"
+			"Reload time increased"			"2.00"
+		}
+		"Slow swing"//22
+		{
+			"armor piercing damage"		"2.0"
+			"melee attack rate penalty"	"2.0"
+		}
+		"Short charge"//23
+		{
+			"charge impact damage multiplier"		"1.0"
+			"charge time decreased"		"1.0"
+		}
+		"Le Flingueur"//24
+		{
+			"mod wrench builds minisentry"	"1.0"
+			"max health additive bonus"		"0.572"
+		}
+		"Honor!"//25
+		{
+			"Honorbound"					"1.0"
+			"percent of hp healed on kill"	"7.5"
+		}
+		"Tankyness"//26
+		{
+			"dmg taken reduced"				"8"
+			"move speed penalty(s)"			"4.50"
+			"Immunity to crits"				"1.00"
+		}
+		"Blitz Uber"//27
+		{
+			"medigun charge is crit boost"	"1"
+			"medigun charge is boost"	"1"
+			"medigun charge is heals"		"1"
+			"medigun outline uber"			"1"
+		}
+		"Army of not Many(en)"//28
+		{
+			"Reload time increased"		"18.00"
+			"fire rate penalty"		"19.00"
+			"armor piercing damage"		"9.00"
+		}
+		"Army of not Many(MM)"//29
+		{
+			"Reload time increased"		"30.00"
+			"fire rate penalty(cleaver)"		"30.00"
+			"armor piercing damage"		"13.00"
+		}
+		"Assault Weapon(MM)"//30
+		{
+			"armor piercing damage"		"0.9"
+			"fire rate penalty"			"2.50"
+		}
+		"Some Beggar Tweak(b)"//31
+		{
+			"spread penalty"		"1.00"
+			"auto fires full clip"		"1.00"
+			"extra fire rate HIDDEN"		"4.00"
+			"clip size penalty HIDDEN"		"1.00"
+			"Reload time increased"		"3.00"
+		}
+		"Siege Charge"//33
+		{
+			"auto fires full clip all at once"		"1"
+			"clip size penalty (G)"		"7.5"
+			"Damage bonus vs player (C)"		"-3"
+			"Unremovable reload penalty"	"15"
+			"apply z velocity on damage"	"0.2"
+			"apply look velocity on damage"	"1.6"
+		}
+		"Jumper"//34
+		{
+			"jump height"		"1"
+			"increased air control" "2"
+		}
+		"Compressed fire"//35
+		{
+			"mod ammo per shot"		"3.00"
+			"afterburn dmg increased (H)" "2.50"
+			"damage bonus"	"2.5"
+		}
+		"Austrailium"//36
+		{
+			"is australium item"	"1"
+			"item style override"	"1"
+		}
+		"Reverse Knockback"//37
+		{
+			"apply look velocity on damage" "-4"
+			"apply z velocity on damage"	"2"
+		}
+		"Healthy"//38
+		{
+			"dmg taken from fire reduced(T)" "4"
+			"dmg taken from crit reduced(T)" "4"
+			"dmg taken from blast reduced(T)" "4"
+			"dmg taken from bullets reduced(T)" "4"
+			"health from healers reduced(nonremovable)" "3.34"
+		}
+		"Rocket Launcher"//39
+		{
+			"override projectile type (R)"	"1"
+			"damage bonus HIDDEN"			"12"
+			"projectile spread angle penalty"		"2.00"
+		}
+		"Cow Mangler Projectile"//40
+		{
+			"override projectile type (MA)"	"1"
+			"damage bonus HIDDEN(a)"			"3.5"
+			"Set DamageType Ignite"			"1"
+			"projectile spread angle penalty"		"4.00"
+			"fire rate penalty(bow)"	"5"
+		}
+		"Condensed Laser"//41
+		{
+			"dmg bonus vs nonburning"		"7.50"
+			"damage bonus vs burning"		"7.50"
+			"Reload time increased"		"3.50"
+			"fire rate penalty"		"2.00"
+		}
+		"Higher voltage"//42
+		{
+			"dmg bonus vs nonburning"		"2.5"
+			"damage bonus vs burning"		"2.5"
+			"move speed penalty"			"0.8"
+		}
+		"Uber -> Heal Rate"//43
+		{
+			"ubercharge rate penalty"		"2.5"
+			"heal rate bonus(A)"			"1"
+		}
+		"Overhealer"//44
+		{
+			"overheal decay disabled"		"1"
+			"ubercharge rate penalty"		"3.33334"
+			"healing mastery"				"-1"
+		}
+		"Hard Strings"//45
+		{
+			"damage bonus HIDDEN(a)"			"1.5"
+			"fire rate penalty(bow)"			"2.5"
+		}
+		"Thick Building Armor"//46
+		{
+			"engy building health bonus"	"1"
+			"move speed penalty"			"1.2"
+		}
+		"Heavy Cleaver"//47
+		{
+			"dmg bonus vs nonburning"		"4"
+			"damage bonus vs burning"		"4"
+			"fire rate penalty(cleaver)"		"4.25"
+		}
+		"Grenade Launcher"//48
+		{
+			"override projectile type"		"1"
+			"Projectile speed decreased"	"4"
+			"damage bonus HIDDEN(a)"			"90.5"
+			"fire rate penalty(cleaver)"		"80"
+		}
+		"Dispencer Heal rate"//49
+		{
+			"health from healers multiplier"	"100"
+			"health from medics reduced"		"9.9"
+			"Healing Disabled"					"1"
+			"provide on active"					"1"
+		}
+		"No Reload Necessary"//50
+		{
+			"mod max primary clip override"				"1"
+			"maxammo secondary increased"		"2"
+			"Damage bonus vs player (C)"		"-0.5"
+			"extra fire rate HIDDEN"		"-40"
+		}
+		"Shrapnel Explosions"//51
+		{
+			"bleeding duration"	"3.0"
+			"Damage bonus vs player (C)"		"-0.25"
+			"Blast radius decreased"	"-0.5"
+		}
+		"Fiery Bullets"//52
+		{
+			"Set DamageType Ignite"	"1"
+			"override projectile type (R)"	"1"
+			"Projectile speed increased(SHRTCRT)"	"1"
+			"damage penalty on bodyshot"	"2"
+			"fire rate penalty(unremoveable)"	"1"
+			"centerfire projectile"	"1"
+		}
+		"Rocket Launcher(S)"//53
+		{
+			"override projectile type (R)"	"1"
+			"damage bonus HIDDEN"			"0.3"
+			"projectile spread angle penalty"		"2.00"
+		}
+	}
+}

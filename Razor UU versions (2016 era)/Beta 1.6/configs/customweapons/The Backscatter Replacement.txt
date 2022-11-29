@@ -1,0 +1,47 @@
+"The Backscatter Replacement"
+{
+	"classes"
+	{
+		"scout"	"0"
+	}
+	"baseclass"		"scattergun"
+	"baseindex"		"1103"
+	"replace"		"1103"
+	"quality"		"7"
+	"nobots"		"1"
+	"logname"		"custom"
+	"description"	"Insert Description"
+	"attributes"
+	{		
+		"hotsauce on crit"
+		{
+			"plugin"	"orion"
+			"value"		"1 2"
+		}
+		"drain uber crit"
+		{
+			"plugin"	"orion"
+			"value"		"5"
+		}
+		"dmg bonus if enemy health lower than threshold"
+		{
+			"plugin"	"orion"
+			"value"		"1.75 0.25"
+		}
+		"aim punch to self"
+		{
+			"plugin"	"basic-attributes"
+			"value"		"5.00"
+		}
+		"move speed bonus"
+		{
+			"plugin" 	"tf2attributes"
+			"value"		"1.05"
+		}
+		"self dmg push force increased"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"2"
+		}
+	}
+}

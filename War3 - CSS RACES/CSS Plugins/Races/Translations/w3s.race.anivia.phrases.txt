@@ -1,0 +1,55 @@
+"Phrases"
+{
+	"anivia_RaceName"
+	{
+		"en"		"Cryophoenix Anivia"
+	}
+	"anivia_skill_FlashFrost"
+	{
+		"en"		"Flash Frost"
+	}
+	"anivia_skill_FlashFrost_desc"
+	{
+		"en"		"Throws shard of ice that flies on a line.\nThe Shard will apply damage and slows anyone in its path.\nIt will detonate when reaching its max range or the ability is activated again.(+ability)"
+	}
+
+	"anivia_skill_Crystallize"
+	{
+		"en"		"Crystallize"
+	}
+	"anivia_skill_Crystallize_desc"
+	{
+		"en"		"Condense moisture in the air into a solid wall of ice(wall will remain for up to 8 seconds/+ability1)."
+	}
+
+	"anivia_skill_Frostbite"
+	{
+		"en"		"Frostbite"
+	}
+	"anivia_skill_Frostbite_desc"
+	{
+		"en"		"Blasts your target with a freezing wind to deal magical damage.\nIf the target has been frosted by one of your other abilites, they will take a way more damage!"
+	}
+
+	"anivia_skill_Glacialstorm"
+	{
+		"en"		"Glacial Storm"
+	}
+	"anivia_skill_Glacialstorm_desc"
+	{
+		"en"		"Summons a driving rain of ice and hail on a nearby target area to continuously deal magic damage and slow them down by 20%"
+	}
+	"Shard launched!"
+	{
+		"en"		"Shard launched!"
+	}
+	"You've used Frostbite on your target causing {damage} extra damage!"
+	{
+		"#format"	"{1:d}"
+		"en"		"You've used Frostbite on your target causing {1} extra damage!"
+	}
+	"You do not have enough Mana to do that!"
+	{
+		"en"		"You do not have enough Mana to do that!"
+	}
+}

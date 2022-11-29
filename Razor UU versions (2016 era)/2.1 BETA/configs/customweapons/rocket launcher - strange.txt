@@ -1,0 +1,27 @@
+"The rocket launcher - replacement"
+{
+	"classes"
+	{
+		"soldier"	"0"
+	}
+	"baseclass"		"rocketlauncher"
+	"baseindex"		"205"
+	"replace"		"205"
+	"quality"		"7"
+	"nobots"		"1"
+	"logname"		"custom"
+	"description"	"Insert Description"
+	"attributes"
+	{		
+		"damage bonus HIDDEN"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1.15"
+		}
+		"rocketjump attackrate bonus"
+		{
+			"plugin"	"tf2attributes"
+			"value" 	"0.90"
+		}
+	}
+}

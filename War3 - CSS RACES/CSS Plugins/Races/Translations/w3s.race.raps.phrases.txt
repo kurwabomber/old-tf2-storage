@@ -1,0 +1,53 @@
+"Phrases"
+{
+	//<shortname>_RaceName
+	"raps_RaceName"
+	{
+		"en" "Rapscallion [SSG-DONATOR]"
+	}
+	
+	//skills:
+	//<shortname>_skill_<SkillNameIdentifier> for the skill name
+	//<shortname>_skill_<SkillNameIdentifier>_desc for the skill description
+	
+	"raps_skill_Adrinaline"
+	{
+		"en" "Adrinaline"
+	}
+	"raps_skill_Adrinaline_desc"
+	{
+		"en" "You run 7-28%% faster"
+	}
+	
+	"raps_skill_Blade"
+	{
+		"en" "Blade"
+	}
+	"raps_skill_Blade_desc"
+	{
+		"en" "20-80%% chance of double damage"
+	}
+
+	"raps_skill_Levitation"
+	{
+		"en" "Levitation"
+	}
+	"raps_skill_Levitation_desc"
+	{
+		"en" "You can jump higher\n20-60%% less gravity"
+	}
+
+	"raps_skill_Invisibility"
+	{
+		"en" "Complete Invisibility"
+	}
+	"raps_skill_Invisibility_desc"
+	{
+		"en" "Gain complete invisibility, but cannot move"
+	}
+
+	"Blade"
+	{
+		"en" "[Blade] Double Damage"
+	}
+}

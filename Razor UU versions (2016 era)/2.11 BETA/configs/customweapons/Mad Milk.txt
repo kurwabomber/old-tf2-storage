@@ -1,0 +1,32 @@
+"Mad Milk"
+{
+	"classes"
+	{
+		"scout"	"1"
+	}
+	"baseclass"		"jar_milk"
+	"baseindex"		"222"
+	"replace"		"222"
+	"quality"		"7"
+	"nobots"		"1"
+	"logname"		"custom"
+	"description"	"Insert Description"
+	"attributes"
+	{		
+		"weapon_allow_inspect"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1"
+		}
+		"hotsauce on hit"
+		{
+			"plugin"	"orion"
+			"value"		"7 1"
+		}
+		"infinite ammo"
+		{
+			"plugin"	"basic-attributes"
+			"value"		"1"
+		}
+	}
+}

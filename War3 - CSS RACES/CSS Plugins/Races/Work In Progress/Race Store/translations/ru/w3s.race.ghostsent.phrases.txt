@@ -1,0 +1,63 @@
+"Phrases"
+{
+	"ghostsent_RaceName"
+	{
+		"ru"	"Призрачный Страж"
+	}
+	"ghostsent_skill_knifes"
+	{
+		"ru"		"Метательные ножи"
+	}
+	"ghostsent_skill_knifes_desc"
+	{
+		"ru"		"Увеличивается максимальное количество ножей"
+	}
+	"ghostsent_skill_steady"
+	{
+		"ru"		"Твердая рука"
+	}
+	"ghostsent_skill_steady_desc"
+	{
+		"ru"		"Метательные ножи наносят больше урона"
+	}
+	"ghostsent_skill_throw"
+	{
+		"ru"		"Мощный бросок"
+	}
+	"ghostsent_skill_throw_desc"
+	{
+		"ru"		"Ножи летят быстрее"
+	}
+	"ghostsent_skill_lightweight"
+	{
+		"ru"		"Легковес"
+	}
+	"ghostsent_skill_lightweight_desc"
+	{
+		"ru"		"Вы бегаете быстрее"
+	}
+	"ghostsent_skill_shadow"
+	{
+		"ru"		"Скрыться в тень"
+	}
+	"ghostsent_skill_shadow_desc"
+	{
+		"ru"		"Вы прячетесь в тень, когда не двигаетесь"
+	}
+	"ghostsent_skill_restore"
+	{
+		"ru"		"Восстановление ножей"
+	}
+	"ghostsent_skill_restore_desc"
+	{
+		"ru"		"Вы восстанавливаете запас ножей"
+	}
+	"Throwing Knives : {1}"
+	{
+		"ru"		"Метательные ножи : {1}"
+	}
+	"You already have too much knifes"
+	{
+		"ru"		"У вас уже полный запас ножей"
+	}
+}

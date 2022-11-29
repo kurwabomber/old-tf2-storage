@@ -1,0 +1,59 @@
+"Phrases"
+{
+	"knifet_RaceName"
+	{
+		"en" "Knife Thrower"
+	}
+	// skill1
+	"knifet_skill_throwingknifes"
+	{
+		"en" "Throwing Knifes"
+	}
+	"knifet_skill_throwingknifes_desc"
+	{
+		"en" "You are  able to throw knifes (mouse1)\nAlso u gain 10 knives on spawn."
+	}
+	//skill2
+	"knifet_skill_fastfeet"
+	{
+		"en" "Fast Feet"
+
+	}
+	"knifet_skill_fastfeet_desc"
+	{
+		"en" "You gain up to 30% more speed"
+	}
+	//skil3
+	"knifet_skill_backup"
+	{
+		"en" "BackUp"
+	}
+	"knifet_skill_backup_desc"
+	{
+		"en" "You get extra knifes and health (+ability)"
+	}
+	//skil4
+	"knifet_skill_hook"
+	{
+		"en" "Hook"
+
+	}
+	"knifet_skill_hook_desc"
+	{
+		"en" "You throwing a special hook that stick to the wall\nand pulling u there\nactivated on holding +ultimate"
+	}
+	"Throwing Knives : {amount}"
+	{
+		"#format" "{1:i}"
+		"en" "Throwing Knives : {1}"
+	}
+	"too far away"
+	{
+		"en" "You cant throw hook so far away"
+	}
+	"+{amount} health and +{amount} throwing knifes"
+	{
+		"#format" "{1:i}{2:i}"
+		"en" "+{2} health and +{1} throwing knives"
+	}
+} 

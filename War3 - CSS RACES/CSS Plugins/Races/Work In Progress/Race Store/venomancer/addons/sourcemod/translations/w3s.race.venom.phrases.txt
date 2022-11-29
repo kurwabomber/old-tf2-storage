@@ -1,0 +1,71 @@
+"Phrases"
+{
+	//<shortname>_RaceName
+	"venom_RaceName"
+	{
+		"en"		"Venomancer"
+	}
+
+	//skills:
+	//<shortname>_skill_<SkillNameIdentifier> for the skill name
+	//<shortname>_skill_<SkillNameIdentifier>_desc for the skill description
+	"venom_skill_PoisonDagger"
+	{
+		"en"		"Poison Dagger"
+	}
+	"venom_skill_PoisonDagger_desc"
+	{
+		"en"		"Damages enemy and leaves DOT"
+	}
+
+	"venom_skill_PlagueWard"
+	{
+		"en"		"Plague Wards"
+	}
+	"venom_skill_PoisonSting"
+	{
+		"en"		"Poison Sting"
+	}
+	"venom_skill_PoisonSting_desc"
+	{
+		"en"		"Your attacks have a stacking poison"
+	}
+	"venom_skill_PoisonNova"
+	{
+		"en"		"Poison Nova"
+	}
+	"venom_skill_PoisonNova_desc"
+	{
+		"en"		"Releases a cloud of poison to enemies"
+	}
+
+	"Poison Nova did {amount} damage"
+	{
+		"#format"	"{1:d}"
+		"en"		"[W3S] Poison Nova did {1} damage"
+	}
+	"Poison Nova has affected you!"
+	{
+		"en"		"[W3S] Poison Nova has affected you!"
+	}
+	"Poison Sting did {amount} damage to you"
+	{
+		"#format"	"{1:d}"
+		"en"		"Poison Sting did {1} damage to you"
+	}
+	"Poison Sting did {amount} damage"
+	{
+		"#format"	"{1:d}"
+		"en"		"[W3S] Poison Sting did {1} damage"
+	}	
+	"Dagger hit you for {amount} damage and poisoned for {amount2}"
+	{
+		"#format"	"{1:d}, {2:d}"
+		"en"		"[W3S] Dagger hit you for {1} damage and poisoned for {2}"
+	}
+	"Dagger did {amount} damage and poisoned for {amount2}"
+	{
+		"#format"	"{1:d}, {2:d}"
+		"en"		"[W3S] "Dagger did {1} damage and poisoned for {2}"
+	}
+}

@@ -1,0 +1,32 @@
+"Bison replacement"
+{
+	"classes"
+	{
+		"engineer"		"0"
+	}
+	"baseclass"		"drg_pomson"
+	"baseindex"		"588"
+	"replace"		"588"
+	"quality"		"7"
+	
+	"logname"		"custom"
+	"description"	"Insert Description"
+	"attributes"
+	{
+		"provide on active"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1"
+		}
+		"controllable projectiles"
+		{
+			"plugin"	"advanced-weaponiser-2-attributes"
+			"value"		"0.30"
+		}		
+		"weapon_allow_inspect"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1"
+		}
+	}
+}

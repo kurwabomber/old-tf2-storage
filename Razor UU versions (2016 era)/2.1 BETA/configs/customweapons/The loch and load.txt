@@ -1,0 +1,32 @@
+"The Loch and Load"
+{
+	"classes"
+	{
+		"demoman"		"0"
+	}
+	"baseclass"		"grenadelauncher"
+	"baseindex"		"308"
+	"replace"		"308"
+	"quality"		"7"
+	"nobots"		"1"
+	"logname"		"custom"
+	"description"	"Insert Description"
+	"attributes"
+	{
+		"damage bonus HIDDEN"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1.55"
+		}		
+		"weapon_allow_inspect"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1"
+		}
+		"Blast radius decreased"
+		{
+			"plugin"	"tf2attributes"
+			"value"		".9"
+		}
+	}
+}

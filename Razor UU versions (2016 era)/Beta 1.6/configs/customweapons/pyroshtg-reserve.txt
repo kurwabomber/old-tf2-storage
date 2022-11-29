@@ -1,0 +1,11 @@
+"pyroshtg"
+{
+	"classes"
+	{
+		"pyro"		"1"
+	}
+	"baseclass"		"shotgun"
+	"baseindex"		"415"
+	"replace"		"415"
+	
+}

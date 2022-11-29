@@ -1,0 +1,64 @@
+"Phrases"
+{
+	"ghostsent_RaceName"
+	{
+		"en"	"Ghost Sentinel"
+	}
+	"ghostsent_skill_knifes"
+	{
+		"en"		"Throwing knifes"
+	}
+	"ghostsent_skill_knifes_desc"
+	{
+		"en"		"You can pick more knifes"
+	}
+	"ghostsent_skill_steady"
+	{
+		"en"		"Steady Hand"
+	}
+	"ghostsent_skill_steady_desc"
+	{
+		"en"		"You deal more damage"
+	}
+	"ghostsent_skill_throw"
+	{
+		"en"		"Powerful Throw"
+	}
+	"ghostsent_skill_throw_desc"
+	{
+		"en"		"Knifes fly faster"
+	}
+	"ghostsent_skill_lightweight"
+	{
+		"en"		"Lightweight"
+	}
+	"ghostsent_skill_lightweight_desc"
+	{
+		"en"		"You run faster"
+	}
+	"ghostsent_skill_shadow"
+	{
+		"en"		"Hide in shadow"
+	}
+	"ghostsent_skill_shadow_desc"
+	{
+		"en"		"You hide in shadow when dont move"
+	}
+	"ghostsent_skill_restore"
+	{
+		"en"		"Restore Knifes"
+	}
+	"ghostsent_skill_restore_desc"
+	{
+		"en"		"You restore your knifes"
+	}
+	"Throwing Knives : {1}"
+	{
+		"#format"	"{1:d}"
+		"en"		"Throwing Knives : {1}"
+	}
+	"You already have too much knifes"
+	{
+		"en"		"You already have too much knifes"
+	}
+}

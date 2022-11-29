@@ -1,0 +1,32 @@
+"The Flying Guillotine"
+{
+	"classes"
+	{
+		"scout"	"1"
+	}
+	"baseclass"		"cleaver"
+	"baseindex"		"812"
+	"replace"		"812"
+	"quality"		"7"
+	"nobots"		"1"
+	"logname"		"custom"
+	"description"	"Insert Description"
+	"attributes"
+	{		
+		"weapon_allow_inspect"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"0"
+		}
+		"dmg bonus if enemy health higher than threshold"
+		{
+			"plugin"	"orion"
+			"value"		"1.15 1"
+		}
+		"infinite ammo"
+		{
+			"plugin"	"basic-attributes"
+			"value"		"80"
+		}
+	}
+}

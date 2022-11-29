@@ -1,0 +1,28 @@
+"The BASE Jumper"
+{
+	"classes"
+	{
+		"soldier"	"1"
+		"demoman"	"0"
+	}
+	"baseclass"		"parachute"
+	"baseindex"		"1101"
+	"replace"		"1101"
+	"quality"		"7"
+	"nobots"		"1"
+	"logname"		"custom"
+	"description"	"Insert Description"
+	"attributes"
+	{		
+		"weapon_allow_inspect"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1"
+		}
+		"dmg taken increased"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"0.9"
+		}
+	}
+}

@@ -1,0 +1,370 @@
+#pragma semicolon 1    ///WE RECOMMEND THE SEMICOLON
+
+#include <sourcemod>
+#include "W3SIncs/War3Source_Interface"
+
+public Plugin:myinfo = 
+{
+    name = "War3Source - Race - Venomancer",
+    author = "Aurora",
+    description = "The Venomancer race for War3Source."
+};
+
+new String:daggersnd[256]; //="war3source/venom/dagger.wav";
+new String:ultsnd[256]; //="war3source/venom/ult.wav";
+new String:wardsnd[256]; //="warsource/venom/ward.wav";
+new String:stingsnd[256]; //="war3source/venom/sting.wav";
+
+new thisRaceID;
+new SKILL_PDAGGER, SKILL_PWARD, SKILL_APOISON, ULT_PNOVA;
+
+// This skill does damage when the venomancer shoots someone. Initial damage followed by a DOT
+new Float:DaggerFreq = 1.0; // How often the poison on the dagger deals damage
+// Cooldown on Dagger
+new Float:DaggerCooldown = 4.0;
+// Dagger Initial Damage
+new DaggerDamage[]={0,5,10,15,20};
+new DaggerDOT[]={0,1,2,3,4};
+new VictimDaggerTicks[MAXPLAYERSCUSTOM];
+new DaggeredBy[MAXPLAYERSCUSTOM];
+
+// Same as shamans ward
+// Max Wards
+new MaximumWards[]={0,1,2,3,4}; 
+// Ward Damage
+new WardDamage[]={0,1,2,3,4};
+
+// Poison stacking effect, applied on hit
+new Float:PoisonFreq = 1.0; // How often the poison ticks per second
+new PoisonDamage[]={0,1,2,3,4}; // How much damage does a stack do?
+new MaxPoisonStacks = 3; // How many stacks can the attacker dish out?
+new VictimPoisonStacks[MAXPLAYERSCUSTOM]; // How many stacks does the victim have?
+new VictimPoisonTicks[MAXPLAYERSCUSTOM];
+new PoisonedBy[MAXPLAYERSCUSTOM]; // Who was the victim poisoned by?
+
+
+
+new Float:PNovaFreq = 1.0;// How often the poison ticks per second
+new PNovaDamage[] = {15, 30, 45}; //Total Poison Nova Damage
+new VictimNovaTicks[MAXPLAYERSCUSTOM];
+new PNovaBy[MAXPLAYERSCUSTOM];
+new PNovaDuration = 4; //Time Poison Nova Lasts
+new PNovaTicks;
+new PNovaDamagePerTick[3];
+// The rest of the variables will be modified inside OnPluginStart() as the functions were being picky    
+
+new Handle:ultCooldownCvar;
+new ultmaxdistance[] = {500, 600, 700, 800};
+public OnPluginStart()
+{
+    CreateTimer(DaggerFreq, DaggerStackTimer , _, TIMER_REPEAT);  // Stacking Dagger DoT Timer
+    CreateTimer(PoisonFreq, PoisonStackTimer , _, TIMER_REPEAT);  // Stacking Poison DoT Timer
+    CreateTimer(PNovaFreq, PoisonNovaTimer, _, TIMER_REPEAT); // Poison Nova Timer
+    LoadTranslations("w3s.race.venom.phrases");
+    ultCooldownCvar=CreateConVar("war3_venom_ult_cooldown","30","Cooldown time for ult.");
+   
+    // The number of ticks is determined by how often the damage ticks within the duration of the poisoning
+    // For example, if you have the ult tick once every half-second (.5) and the duration is 4 seconds,
+    // it would tick 8 times (4 / .5 = 8). We round this to the nearest number
+    PNovaTicks = RoundToNearest(PNovaDuration / PNovaFreq);    
+    
+    // We then set the damage per tick because the timer doesn't use the duration variable, it uses
+    // the tick variable
+    for(new x = 1; x < 3; x++){
+        PNovaDamagePerTick[x] = RoundToNearest(PNovaDamage[x] / PNovaTicks);
+    }
+}
+
+public OnWar3LoadRaceOrItemOrdered(num){
+
+    if(num==290)
+    {
+        thisRaceID=War3_CreateNewRaceT("venom");
+        SKILL_PDAGGER=War3_AddRaceSkillT(thisRaceID,"PoisonDagger",false,4);
+        SKILL_PWARD=War3_AddRaceSkillT(thisRaceID,"PlagueWard",false,4);
+        SKILL_APOISON=War3_AddRaceSkillT(thisRaceID,"PoisonSting",false,4);
+        ULT_PNOVA=War3_AddRaceSkillT(thisRaceID,"PoisonNova",true,4);
+        War3_CreateRaceEnd(thisRaceID); ///DO NOT FORGET THE END!!!
+    }
+}
+
+public OnMapStart()
+{
+    War3_AddSoundFolder(daggersnd, sizeof(daggersnd), "venom/dagger.wav");
+    War3_AddSoundFolder(ultsnd, sizeof(ultsnd), "venom/ult.wav");
+    War3_AddSoundFolder(wardsnd, sizeof(wardsnd), "venom/ward.wav");
+    War3_AddSoundFolder(stingsnd, sizeof(stingsnd), "venom/sting.wav");
+
+    War3_AddCustomSound(daggersnd);
+    War3_AddCustomSound(ultsnd);
+    War3_AddCustomSound(wardsnd);
+    War3_AddCustomSound(stingsnd);
+}
+
+public OnWar3EventSpawn(client)
+{
+    
+    VictimPoisonStacks[client] = 0;  // Remove Poison Stacks
+    VictimPoisonTicks[client] = 0;
+}
+
+public Action:PoisonStackTimer(Handle:h,any:data)
+{
+    new attacker;
+    new damage;
+    new skill;
+    for(new i = 1; i <= MaxClients; i++) // Iterate over all clients
+    {
+        if(ValidPlayer(i, true))
+        {
+            if(VictimPoisonTicks[i] > 0)
+            {
+                attacker = PoisonedBy[i];
+                skill = War3_GetSkillLevel(attacker, thisRaceID, SKILL_APOISON);
+                damage = VictimPoisonStacks[i] * PoisonDamage[skill]; // Number of stacks on the client * damage of the attacker
+                    
+                if(War3_GetGame() == Game_TF)
+                {
+                    War3_DealDamage(i, damage, attacker, _, "bleed_kill"); // Bleeding Icon
+                }
+                else
+                {
+                    if(GameCS() && GetClientHealth(i) > damage){ //cs damages slows....
+                        SetEntityHealth(i, GetClientHealth(i) - damage);
+                    }
+                    else{
+                        War3_DealDamage(i, damage,attacker, _, "PoisonSting"); // Generic skill name
+                    }
+                }
+                War3_ChatMessage(attacker,"%T","Poison Sting did {amount} damage", attacker, damage);
+                War3_ChatMessage(i,"%T","Poison Sting did {amount} damage to you", i, damage);
+                W3EmitSoundToAll(stingsnd,i);
+                VictimPoisonTicks[i]--;
+            }
+        }
+    }
+}                
+
+
+public Action:DaggerStackTimer(Handle:h,any:data)
+{
+    new attacker;
+    new damage;
+    new skill;
+    for(new i = 1; i <= MaxClients; i++) // Iterate over all clients
+    {
+        if(ValidPlayer(i, true))
+        {
+            if(VictimDaggerTicks[i] > 0)
+            {
+                attacker = DaggeredBy[i];
+                skill = War3_GetSkillLevel(attacker, thisRaceID, SKILL_PDAGGER);
+                damage = DaggerDOT[skill];
+                    
+                if(War3_GetGame() == Game_TF)
+                {
+                    War3_DealDamage(i, damage, attacker, _, "bleed_kill"); // Bleeding Icon
+                }
+                else
+                {
+                    if(GameCS() && GetClientHealth(i) > damage){ //cs damages slows....
+                        SetEntityHealth(i, GetClientHealth(i) - damage);
+                    }
+                    else{
+                        War3_DealDamage(i, damage,attacker, _, "PoisonDagger"); // Generic skill name
+                    }
+                }
+                VictimDaggerTicks[i]--;
+            }
+        }
+    }
+}        
+
+public Action:PoisonNovaTimer(Handle:h,any:data)
+{
+    new attacker;
+    new damage;
+    new skill;
+    for(new i = 1; i <= MaxClients; i++) // Iterate over all clients
+    {
+        if(ValidPlayer(i, true))
+        {
+            if(VictimNovaTicks[i] > 0)
+            {
+                attacker = PNovaBy[i];
+                skill = War3_GetSkillLevel(attacker, thisRaceID, ULT_PNOVA);
+                damage = PNovaDamagePerTick[skill];
+                    
+                if(War3_GetGame() == Game_TF)
+                {
+                    War3_DealDamage(i, damage, attacker, _, "bleed_kill"); // Bleeding Icon
+                }
+                else
+                {
+                    if(GameCS() && GetClientHealth(i) > damage){ //cs damages slows....
+                        SetEntityHealth(i, GetClientHealth(i) - damage);
+                    }
+                    else{
+                        War3_DealDamage(i, damage,attacker, _, "PoisonNova"); // Generic skill name
+                    }
+                }
+                War3_ChatMessage(attacker,"%T","Poison Nova did {amount} damage", attacker, damage);
+                VictimNovaTicks[i]--;
+            }
+        }
+    }
+}  
+
+public OnW3TakeDmgBullet(victim,attacker,Float:damage){
+    if(ValidPlayer(victim, true) && ValidPlayer(attacker, false) && GetClientTeam(victim) != GetClientTeam(attacker))
+    {
+        if(War3_GetRace(attacker) == thisRaceID)
+        {
+            // Apply Poison Sting
+            new skilllvl = War3_GetSkillLevel(attacker, thisRaceID, SKILL_APOISON);
+            if(skilllvl > 0 && !Hexed(attacker) && !W3HasImmunity(attacker, Immunity_Skills) && War3_SkillNotInCooldown(attacker, thisRaceID, SKILL_APOISON, true))
+            {
+
+                if(VictimPoisonStacks[victim] < MaxPoisonStacks)
+                {
+                    VictimPoisonStacks[victim]++; //stack if less than max stacks
+                }
+                
+                VictimPoisonTicks[victim] = 3 ; //always three ticks                
+                PoisonedBy[victim] = attacker;
+            }
+            
+            // Apply Poison Dagger            
+            if(War3_SkillNotInCooldown(attacker, thisRaceID, SKILL_PDAGGER, true))
+            {
+                new skilllvl2 = War3_GetSkillLevel(attacker, thisRaceID, SKILL_PDAGGER);
+                if(skilllvl2 > 0 && !Hexed(attacker) && !W3HasImmunity(attacker,Immunity_Skills) && !Silenced(attacker))
+                {
+                    War3_CooldownMGR(attacker, DaggerCooldown, thisRaceID, SKILL_PDAGGER, true, true);
+                    
+                    // Initial Damage from dagger
+                    new daggerDamage = DaggerDamage[skilllvl2];
+                    W3EmitSoundToAll(daggersnd,victim);
+                    War3_ChatMessage(attacker,"%T","Dagger did {amount} damage and poisoned for {amount2}", attacker, daggerDamage, DaggerDOT[skilllvl2]);
+                    War3_ChatMessage(victim,"%T","Dagger hit you for {amount} damage and poisoned for {amount2}", victim, daggerDamage, DaggerDOT[skilllvl2]);
+                    if(War3_GetGame()==Game_TF)
+                    {
+                        War3_DealDamage(victim,daggerDamage,attacker,_,"bleed_kill"); // Bleeding Icon
+                    }
+                    else
+                    {
+                        if(GameCS() && GetClientHealth(victim) > daggerDamage){ //cs damages slows....
+                            SetEntityHealth(victim, GetClientHealth(victim) - daggerDamage);
+                        }
+                        else{
+                            War3_DealDamage(victim, daggerDamage, attacker, _, "PoisonDagger"); // Generic skill name
+                        }
+                    }
+                    
+                    // Dagger DOT damage                
+                    VictimDaggerTicks[victim] = 3 ; //always three ticks                
+                    DaggeredBy[victim] = attacker;
+                    
+                }
+            }                
+        }
+    }
+}
+
+public OnAbilityCommand(client,ability,bool:pressed)
+{
+    if(War3_GetRace(client )== thisRaceID && ability == 0 && pressed && IsPlayerAlive(client))
+    {
+        new skill_level = War3_GetSkillLevel(client, thisRaceID, SKILL_PWARD);
+        if(skill_level > 0)
+        {
+            if(!Silenced(client) && War3_GetWardCount(client) < MaximumWards[skill_level])
+            {
+                new iTeam=GetClientTeam(client);
+                new bool:conf_found=false;
+                if(War3_GetGame()==Game_TF)
+                {
+                    new Handle:hCheckEntities=War3_NearBuilding(client);
+                    new size_arr=0;
+                    if(hCheckEntities!=INVALID_HANDLE)
+                        size_arr=GetArraySize(hCheckEntities);
+                    for(new x=0;x<size_arr;x++)
+                    {
+                        new ent=GetArrayCell(hCheckEntities,x);
+                        if(!IsValidEdict(ent)) continue;
+                        new builder=GetEntPropEnt(ent,Prop_Send,"m_hBuilder");
+                        if(builder>0 && ValidPlayer(builder) && GetClientTeam(builder)!=iTeam)
+                        {
+                            W3EmitSoundToAll(wardsnd,client);
+                            conf_found=true;
+                            break;                            
+                        }
+                    }
+                    if(size_arr>0)
+                        CloseHandle(hCheckEntities);
+                }
+                if(conf_found)
+                {
+                    W3MsgWardLocationDeny(client);
+                }
+                else
+                {
+                    if(War3_IsCloaked(client))
+                    {
+                        W3MsgNoWardWhenInvis(client);
+                        return;
+                    }
+                    new Float:location[3];
+                    GetClientAbsOrigin(client, location);
+                    War3_CreateWard(client, location, 60, 300.0, 0.5, "damage", SKILL_PWARD, WardDamage);
+                    W3MsgCreatedWard(client,War3_GetWardCount(client),MaximumWards[skill_level]);
+                    W3EmitSoundToAll(wardsnd,client);
+                }
+            }
+            else
+            {
+                W3MsgNoWardsLeft(client);
+            }    
+        }
+    }
+}
+
+
+public OnUltimateCommand(client,race,bool:pressed)
+{
+    if(race==thisRaceID && pressed && ValidPlayer(client,true) &&!Silenced(client) && !Hexed(client) && War3_SkillNotInCooldown(client,thisRaceID,ULT_PNOVA,true))
+    {
+        new ult_level = War3_GetSkillLevel(client,race,ULT_PNOVA);
+        if(ult_level > 0)        
+        {
+        
+            new caster_team = GetClientTeam(client);
+            new Float:start_pos[3];
+            GetClientAbsOrigin(client,start_pos);
+            new distance = ultmaxdistance[ult_level] + 1;
+            
+            for(new x = 1; x <= MaxClients; x++)
+            {
+                if(ValidPlayer(x,true) && caster_team != GetClientTeam(x) && !W3HasImmunity(x,Immunity_Ultimates))
+                {
+                    new Float:this_pos[3];
+                    GetClientAbsOrigin(x, this_pos);
+                    new Float:dist_check = GetVectorDistance(start_pos, this_pos);
+                    if(dist_check <= distance)
+                    {
+                        W3EmitSoundToAll(ultsnd,client);
+                        VictimNovaTicks[x] = PNovaTicks;   
+                        War3_ChatMessage(x,"%T","Poison Nova has affected you!", x);                        
+                    }
+                }
+            }
+
+            War3_CooldownMGR(client,GetConVarFloat(ultCooldownCvar),thisRaceID,ULT_PNOVA,true,true);
+            
+        }
+        else
+        {
+            W3MsgUltNotLeveled(client);
+        }
+    }
+}

@@ -1,0 +1,1366 @@
+#pragma dynamic 131072 
+// Includes
+#include <sourcemod>
+#include <sdktools>
+#include <tf2attributes>
+#include <tf2>
+#include <tf2_stocks>
+
+// Defines
+#define CMVM_VERSION "1.1"
+#define MAX_ATTRIBS 1000
+
+// Plugin Info
+public Plugin:myinfo =
+{
+	name = "[TF2-MVM]Chaos MVM",
+	author = "X Kirby",
+	description = "A revision of Universal Upgrades specifically for MVM.",
+	version = CMVM_VERSION,
+	url = "n/a",
+}
+
+// CVars
+new Handle:cvar_ShopFile;
+new Handle:cvar_UseStations;
+
+// Handles
+new Handle:cmvm_version;
+new Handle:cmvm_SetValue;
+new Handle:cmvm_GetValue;
+new Handle:kv = INVALID_HANDLE;
+new Handle:StatsClass = INVALID_HANDLE;
+new Handle:StatsWeapon = INVALID_HANDLE;
+new Handle:StatsCustom = INVALID_HANDLE;
+new Handle:StatsBought = INVALID_HANDLE;
+
+// Variables
+new AddToCheckpoint = true;
+new RoundCount = 0;
+new PlayerInMenu = -1;
+new BackstepCreds[MAXPLAYERS+1] = 0;
+new BackstepSpent[MAXPLAYERS+1] = 0;
+new Checkpoint[MAXPLAYERS+1] = 0;
+new SpentCheckpoint[MAXPLAYERS+1] = 0;
+new SpentCreds[MAXPLAYERS+1] = 0;
+new Slot[MAXPLAYERS+1] = 0;
+new String:path[512];
+new Float:VAL[MAXPLAYERS+1];
+
+// On Plugin Start
+public OnPluginStart()
+{
+	// Global Forwards
+	cmvm_SetValue = CreateGlobalForward("SetAttribValue", ET_Ignore, Param_Cell, Param_String, Param_Float);
+	cmvm_GetValue = CreateGlobalForward("GetAttribValue", ET_Single, Param_Cell, Param_String);
+	
+	// Cvars
+	cmvm_version = CreateConVar("cmvm_version", "1.0", "Version Variable. Don't Change.");
+	cvar_UseStations = CreateConVar("cmvm_usestations", "0", "Disable to use Custom Upgrades, Enable to use Standard MVM Upgrade Stations.");
+	cvar_ShopFile = CreateConVar("cmvm_upgradefile", "configs/sm_chaosmvm_upgrades.txt", "The configuration file for the Upgrades Shop.");
+	
+	// Commands
+	RegAdminCmd("sm_parseshop", Command_ParseShop, ADMFLAG_ROOT);
+	RegAdminCmd("sm_resetall", Command_ResetAll, ADMFLAG_ROOT);
+	//RegAdminCmd("sm_loadstats", Command_LoadStats, ADMFLAG_ROOT);
+	//RegAdminCmd("sm_savestats", Command_SaveStats, ADMFLAG_ROOT);
+	RegConsoleCmd("sm_cupgrade", Command_UpgradeShop);
+	RegConsoleCmd("sm_cbuy", Command_UpgradeShop);
+	
+	// Event Hooks
+	HookEvent("player_changeclass", Event_ChangeClassTeam);
+	HookEvent("teamplay_round_start", Event_RoundStart);
+	HookEvent("mvm_begin_wave", Event_WaveBegin);
+	HookEvent("mvm_wave_complete", Event_WaveComplete);
+	HookEvent("mvm_pickup_currency", Event_CurrencyChange);
+	HookEvent("mvm_reset_stats", Event_ResetStats);
+	HookEvent("mvm_creditbonus_wave", Event_CreditBonus);
+	
+	
+	// Arrays
+	StatsClass = CreateArray(2048, MAX_ATTRIBS);
+	StatsWeapon = CreateArray(2048, MAX_ATTRIBS);
+	StatsCustom = CreateArray(2048, MAX_ATTRIBS);
+	StatsBought = CreateArray(MAX_ATTRIBS*3, MAXPLAYERS+1);
+	
+	// Run Defaults
+	ParseStats();
+	for(new i=0; i<MAXPLAYERS; i++)
+	{
+		Checkpoint[i] = 0;
+		SpentCheckpoint[i] = 0;
+		SpentCreds[i] = 0;
+		BackstepCreds[i] = 0;
+		for(new j=0; j<MAX_ATTRIBS*3; j++)
+		{
+			SetArrayCell(StatsBought, i, 0, j);
+		}
+	}
+	
+	// Version Set
+	SetConVarString(cmvm_version, CMVM_VERSION);
+}
+
+// Native Creation
+public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
+{
+	CreateNative("CMVM_SetAttribValue", Native_SetValue);
+	CreateNative("CMVM_GetAttribValue", Native_GetValue);
+	return APLRes_Success;
+}
+
+// On Map Start
+public OnMapStart()
+{
+	new e = -1;
+	for(new i=0; i<MAXPLAYERS; i++)
+	{
+		Checkpoint[i] = 0;
+		for(new j=0; j<MAX_ATTRIBS*3; j++)
+		{
+			SetArrayCell(StatsBought, i, 0, j);
+		}
+	}
+	
+	if(!GetConVarBool(cvar_UseStations))
+	{
+		while((e = FindEntityByClassname(e, "func_upgradestation")) != -1)
+		{
+			AcceptEntityInput(e, "Disable");
+		}
+	}
+	
+	ParseStats();
+}//
+
+// On Client Put In Server
+public OnClientPutInServer(client)
+{
+	Checkpoint[client] = 0;
+	SpentCheckpoint[client] = 0;
+	SpentCreds[client] = 0;
+	BackstepCreds[client] = 0;
+	for(new j=0; j<MAX_ATTRIBS*3; j++)
+	{
+		SetArrayCell(StatsBought, client, 0, j);
+	}
+}
+
+// Set Effect Value
+public SetValue(client, String:effectname[256], Float:value)
+{
+	Call_StartForward(cmvm_SetValue);
+	Call_PushCell(client);
+	Call_PushString(effectname);
+	Call_PushFloat(value);
+	Call_Finish();
+}
+
+// Grab Effect By Name
+public Float:GetValue(client, String:effectname[256])
+{
+	new Float:value = 0.0;
+	Call_StartForward(cmvm_GetValue);
+	Call_PushCell(client);
+	Call_PushString(effectname);
+	Call_Finish(_:value);
+	
+	return value;
+}
+
+// Set Custom Attrib Value
+public Native_SetValue(Handle:plugin, numParams)
+{
+	new client, String:effectname[256], Float:value;
+	client = GetNativeCell(1);
+	GetNativeString(2, effectname, sizeof(effectname));
+	value = Float:GetNativeCell(3);
+	
+	Call_StartForward(cmvm_SetValue);
+	Call_PushCell(client);
+	Call_PushString(effectname);
+	Call_PushFloat(value);
+	Call_Finish();
+}
+
+// Get Custom Attrib Value
+public Native_GetValue(Handle:plugin, numParams)
+{
+	new client, String:effectname[256];
+	client = GetNativeCell(1);
+	GetNativeString(2, effectname, sizeof(effectname));
+	
+	Call_StartForward(cmvm_GetValue);
+	Call_PushCell(client);
+	Call_PushString(effectname);
+	Call_Finish(_:VAL[client]);
+	
+	return _:VAL[client];
+}
+
+// Round Restart Event
+public Event_RoundStart(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	// Upgrade Station Setup
+	new e = -1;
+	if(!GetConVarBool(cvar_UseStations))
+	{
+		
+		// Round Check
+		AddToCheckpoint = true;
+		for(new i=1; i<=MaxClients; i++)
+		{
+			if(IsValidEntity(i))
+			{
+				if(RoundCount > 0)
+				{
+					LoadStats(i);
+					if(BackstepCreds[i] >= 0)
+					{
+						SetEntProp(i, Prop_Send, "m_nCurrency", BackstepCreds[i]);
+						SpentCreds[i] = BackstepSpent[i];
+					}
+					else
+					{
+						SetEntProp(i, Prop_Send, "m_nCurrency", Checkpoint[i]);
+						SpentCreds[i] = SpentCheckpoint[i];
+					}
+				}
+				else if(RoundCount == 0)
+				{
+					Checkpoint[i] = GetEntProp(i, Prop_Send, "m_nCurrency");
+					SpentCheckpoint[i] = 0;
+					SpentCreds[i] = 0;
+				}
+			}
+		}
+		PrintToServer("[CMVM] Game State Refreshed.");
+	}
+	else
+	{
+		while((e = FindEntityByClassname(e, "func_upgradestation")) != -1)
+		{
+			AcceptEntityInput(e, "Enable");
+		}
+	}
+	RoundCount = 0;
+}
+
+// Wave Begin Event
+public Event_WaveBegin(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	RoundCount++;
+	if(!GetConVarBool(cvar_UseStations))
+	{
+		AddToCheckpoint = false;
+		for(new i=1; i<=MaxClients; i++)
+		{
+			if(IsClientInGame(i))
+			{
+				BackstepCreds[i] = GetEntProp(i, Prop_Send, "m_nCurrency");
+				BackstepSpent[i] = SpentCreds[i];
+			}
+		}
+		PrintToServer("[CMVM] Wave Starting.");
+	}
+}
+
+// Wave Completed Event
+public Event_WaveComplete(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	if(!GetConVarBool(cvar_UseStations))
+	{
+		AddToCheckpoint = true;
+		for(new i=1; i<=MaxClients; i++)
+		{
+			if(IsClientInGame(i))
+			{
+				SaveStats(i);
+				BackstepCreds[i] = -1;
+				BackstepSpent[i] = -1;
+				Checkpoint[i] = GetEntProp(i, Prop_Send, "m_nCurrency");
+				SpentCheckpoint[i] = SpentCreds[i];
+				//SpentCreds[i] = 0;
+			}
+		}
+		PrintToServer("[CMVM] Game State Stored.");
+	}
+}
+
+// Currency Change Event
+public Event_CurrencyChange(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	for(new i=1; i<=MaxClients; i++)
+	{
+		if(IsClientInGame(i))
+		{
+			if(AddToCheckpoint && !GetConVarBool(cvar_UseStations))
+			{
+				SaveStats(i);
+				BackstepCreds[i] = -1;
+				BackstepSpent[i] = -1;
+				Checkpoint[i] += GetEventInt(event, "currency");
+				SpentCheckpoint[i] = SpentCreds[i];
+				//SpentCreds[i] = 0;
+			}
+		}
+	}
+}
+
+// Bonus Credits Event
+public Event_CreditBonus(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	for(new i=1; i<=MaxClients; i++)
+	{
+		if(IsClientInGame(i) && !GetConVarBool(cvar_UseStations))
+		{
+			SaveStats(i);
+			Checkpoint[i] = GetEntProp(i, Prop_Send, "m_nCurrency");
+			SpentCheckpoint[i] = SpentCreds[i];
+		}
+	}
+}
+
+// Reset Stats
+public Event_ResetStats(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	new client = GetClientOfUserId(GetEventInt(event, "userid"));
+	if(!GetConVarBool(cvar_UseStations))
+	{
+		SetEntProp(client, Prop_Send, "m_nCurrency", GetEntProp(client, Prop_Send, "m_nCurrency") + SpentCreds[client]);
+		SpentCreds[client] = 0;
+		SpentCheckpoint[client] = 0;
+		Checkpoint[client] = 0;
+		ResetPlayer(client);
+	}
+}
+
+// Change Class/Team Event
+public Event_ChangeClassTeam(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	new client = GetClientOfUserId(GetEventInt(event, "userid"));
+	if(!GetConVarBool(cvar_UseStations))
+	{
+		SetEntProp(client, Prop_Send, "m_nCurrency", GetEntProp(client, Prop_Send, "m_nCurrency") + SpentCreds[client]);
+		SpentCreds[client] = 0;
+		SpentCheckpoint[client] = 0;
+		Checkpoint[client] = 0;
+		CreateTimer(0.1, DelayResetPlayer,(client));
+		PrintToChat(client, "Reset Stats and refunded Credits.");
+	}
+}
+
+// Command: Open Upgrade Shop
+public Action:Command_UpgradeShop(client, args)
+{
+	if(!GetConVarBool(cvar_UseStations))
+	{
+		if(IsClientInGame(client))
+		{
+			if(IsPlayerAlive(client))
+			{
+				CreateShopPanel(client);
+			}
+		}
+	}
+	
+	return Plugin_Handled;
+}
+
+// Command: Reset User Stats
+public Action:Command_ResetStats(client, args)
+{
+	if(!GetConVarBool(cvar_UseStations))
+	{
+		SetEntProp(client, Prop_Send, "m_nCurrency", GetEntProp(client, Prop_Send, "m_nCurrency") + SpentCreds[client]);
+		SpentCreds[client] = 0;
+		ResetPlayer(client);
+		PrintToChat(client, "[CMVM]Reset Stats and refunded Credits.");
+	}
+	return Plugin_Handled;
+}
+
+// Command: Reset All Player's Stats
+public Action:Command_ResetAll(client, args)
+{
+	if(!GetConVarBool(cvar_UseStations))
+	{
+		ResetAllPlayers();
+		PrintToChatAll("[CMVM]All Players Reset and Refunded.");
+	}
+	return Plugin_Handled;
+}
+
+// Admin Command: Parse Shop Lists
+public Action:Command_ParseShop(client, args)
+{
+	ParseStats();
+	return Plugin_Handled;
+}
+
+/* ---DEBUG COMMANDS, LEAVE ALONE---
+// Admin Command: Save User Stats
+public Action:Command_SaveStats(client, args)
+{
+	if(!GetConVarBool(cvar_UseStations))
+	{
+		SaveStats(client);
+		PrintToChat(client, "[CMVM]Attempted to Save Stats.");
+	}
+	return Plugin_Handled;
+}
+
+// Admin Command: Load User Stats
+public Action:Command_LoadStats(client, args)
+{
+	if(!GetConVarBool(cvar_UseStations))
+	{
+		LoadStats(client);
+		PrintToChat(client, "[CMVM]Attempted to Load Stats.");
+	}
+	return Plugin_Handled;
+}
+*/ 
+
+public CreateShopPanel(client)
+{
+	if(IsPlayerAlive(client))
+	{
+		new Handle:panel = CreatePanel();
+		SetPanelTitle(panel, "Secondary Upgrade Menu");
+		DrawPanelItem(panel, "Custom");
+		DrawPanelItem(panel, "Exit");
+		SendPanelToClient(panel, client, Panel_SlotSelect, MENU_TIME_FOREVER);
+		CloseHandle(panel);
+	}
+}
+
+// Panel: Slot Selection
+public Panel_SlotSelect(Handle:menu, MenuAction:action, p1, p2)
+{
+	if(IsPlayerAlive(p1)){
+	Slot[p1] = -2;
+	if(action == MenuAction_Select)
+	{
+		if(IsPlayerAlive(p1))
+		{
+			Slot[p1] = 0;
+			p2--;
+			PlayerInMenu = p1;
+			switch(p2)
+			{
+				case 0:
+					{Slot[p1] = -2;}
+				
+				case 1:
+					{Slot[p1] = -3;}
+			}
+			
+			new Handle:M = INVALID_HANDLE;
+			M = BuildUpgradeMenu();
+			if(Slot[p1] != -3 && M != INVALID_HANDLE)
+			{
+				DisplayMenu(M, p1, MENU_TIME_FOREVER);
+			}
+		}
+	}
+	}
+}
+
+// Handle: Build Upgrade Menu
+Handle:BuildUpgradeMenu()
+{
+	// Open the Upgrades File
+	new Handle:menu = INVALID_HANDLE;
+	menu = CreateMenu(Menu_UpgradeShop);
+	
+	// Set Player
+	new p1 = PlayerInMenu;
+	PlayerInMenu = -1;
+	
+	// Find the Slot Type
+	new Type = 0, bool:Match = false;
+	if(Slot[p1] == -1)
+		{Type = 0;}
+	if(Slot[p1] > 0)
+		{Type = 1;}
+	if(Slot[p1] == -2)
+		{Type = 2;}
+	
+	// Find Attribute Values
+	for(new i=0; i<MAX_ATTRIBS; i++)
+	{
+		new String:FullBuffer[2048], String:Buffers[5][1024], String:SubBuffers[4][512], String:Value[5][512];
+		Match = false;
+		
+		switch(Type)
+		{
+			case 0:{GetArrayString(StatsClass, i, FullBuffer, sizeof(FullBuffer));}
+			case 1:{GetArrayString(StatsWeapon, i, FullBuffer, sizeof(FullBuffer));}
+			case 2:{GetArrayString(StatsCustom, i, FullBuffer, sizeof(FullBuffer));}
+		}
+		ExplodeString(FullBuffer, "|", Buffers, 5, 1024, false);
+		
+		for(new j=0; j<5; j++)
+		{
+			ExplodeString(Buffers[j], ">", SubBuffers, 4, 512, false);
+			switch(Type)
+			{
+				// Class Upgrade
+				case 0:
+				{
+					new TFClassType:Class = TF2_GetPlayerClass(p1);
+					if(TF2_GetClass(SubBuffers[0]) == Class)
+					{
+						Match = true;
+						strcopy(Value[j], 512, SubBuffers[3]);
+					}
+				}
+				
+				// Weapon Upgrade
+				case 1:
+				{
+					new String:WeaponList[1024][16], String:SlotID[16];
+					IntToString(GetEntProp(Slot[p1], Prop_Send, "m_iItemDefinitionIndex"), SlotID, sizeof(SlotID));
+					ExplodeString(SubBuffers[0], " ; ", WeaponList, 512, 8, false);
+					for(new k=0; k<512; k++)
+					{
+						if(StrEqual(WeaponList[k], SlotID))
+						{
+							Match = true;
+							strcopy(Value[j], 512, SubBuffers[3]);
+							break;
+						}
+					}
+				}
+				
+				// Custom Upgrade
+				case 2:
+				{
+					if(StrEqual(SubBuffers[0], "custom"))
+					{
+						Match = true;
+						strcopy(Value[j], 512, SubBuffers[3]);
+					}
+				}
+			}
+		}
+		
+		new String:NAME[1024];
+		if(Match)
+		{
+			NAME = AddMenuAttrib(p1, SubBuffers[1], StringToInt(Value[1]), StringToFloat(Value[2]), StringToInt(Value[3]), StringToFloat(Value[4]), Value[0], Slot[p1]);
+			if(!StrEqual(NAME, "<Empty>"))
+			{
+				AddMenuItem(menu, SubBuffers[1], NAME);
+			}
+		}
+	}
+	
+	SetMenuTitle(menu, "Upgrade Select");
+	return menu;
+}
+
+// Menu: Upgrade Shop
+public Menu_UpgradeShop(Handle:menu, MenuAction:action, p1, p2)
+{
+	if(p1 > 0 && p1 <= MAXPLAYERS)
+	{
+		if(action == MenuAction_Select)
+		{
+		
+			// Redisplay Menu
+			PlayerInMenu = p1;
+		
+			// Find the Slot Type
+			new Type = 0, String:info[256];
+			if(Slot[p1] == -1)
+				{Type = 0;}
+			if(Slot[p1] > 0)
+				{Type = 1;}
+			if(Slot[p1] == -2)
+				{Type = 2;}
+			
+			// Copy down the Attribute
+			GetMenuItem(menu, p2, info, sizeof(info));
+			
+			new String:FullBuffer[2048], String:Buffers[5][2048], String:SubBuffers[4][512], String:Value[5][128];
+			
+			// Find Attribute Values
+			for(new i=0; i<MAX_ATTRIBS; i++)
+			{
+				switch(Type)
+				{
+					case 0:{GetArrayString(StatsClass, i, FullBuffer, sizeof(FullBuffer));}
+					case 1:{GetArrayString(StatsWeapon, i, FullBuffer, sizeof(FullBuffer));}
+					case 2:{GetArrayString(StatsCustom, i, FullBuffer, sizeof(FullBuffer));}
+				}
+				ExplodeString(FullBuffer, "|", Buffers, 5, 2048, false);
+				
+				for(new j=0; j<5; j++)
+				{
+					ExplodeString(Buffers[j], ">", SubBuffers, 4, 512, false);
+					switch(Type)
+					{
+						// Class Upgrade
+						case 0:
+						{
+							new TFClassType:Class = TF2_GetPlayerClass(p1);
+							if(TF2_GetClass(SubBuffers[0]) == Class && StrEqual(SubBuffers[1], info))
+							{
+								strcopy(Value[j], 128, SubBuffers[3]);
+							}
+						}
+						
+						// Weapon Upgrade
+						case 1:
+						{
+							new String:WeaponList[512][8], String:SlotID[8];
+							IntToString(GetEntProp(Slot[p1], Prop_Send, "m_iItemDefinitionIndex"), SlotID, sizeof(SlotID));
+							ExplodeString(SubBuffers[0], " ; ", WeaponList, 512, 8, false);
+							for(new k=0; k<512; k++)
+							{
+								if(StrEqual(WeaponList[k], SlotID) && StrEqual(SubBuffers[1], info))
+								{
+									strcopy(Value[j], 128, SubBuffers[3]);
+								}
+							}
+						}
+						
+						// Custom Upgrade
+						case 2:
+						{
+							if(StrEqual(SubBuffers[0], "custom") && StrEqual(SubBuffers[1], info))
+							{
+								strcopy(Value[j], 128, SubBuffers[3]);
+							}
+						}
+					}
+				}
+			}
+			
+			new Cost, Float:UpValue, UpLimit, Float:Start, Ent, Address:A, Float:AttribAmount;
+			Cost = StringToInt(Value[1]);
+			UpValue = StringToFloat(Value[2]);
+			UpLimit = StringToInt(Value[3]);
+			Start = StringToFloat(Value[4]);
+			
+			if(Slot[p1] < 0)
+				{Ent = p1;}
+			else
+				{Ent = Slot[p1];}
+			
+			// Attribute Check
+			if(Slot[p1] >= -1)
+			{
+				A = TF2Attrib_GetByName(Ent, info);
+				if(A == Address_Null)
+				{
+					TF2Attrib_SetByName(Ent, info, Start);
+					A = TF2Attrib_GetByName(Ent, info);
+				}
+				
+				AttribAmount = TF2Attrib_GetValue(A);
+				
+				new String:weaponclass[128];
+				GetEntityClassname(Ent, weaponclass, sizeof(weaponclass));
+				if(StrEqual(weaponclass, "tf_powerup_bottle"))
+				{
+					A = TF2Attrib_GetByName(Ent, info);
+					AttribAmount = TF2Attrib_GetValue(A);
+					if(GetEntProp(Ent, Prop_Send, "m_usNumCharges") < AttribAmount)
+					{
+						AttribAmount = float(GetEntProp(Ent, Prop_Send, "m_usNumCharges"));
+					}
+				}
+			}
+			else
+			{
+				AttribAmount = GetValue(p1, info);
+			}
+			
+			// Attribute Counter
+			new Count = 0, Float:l = Start;
+			if(UpValue > 0.0)
+			{
+				for(l = Start; l < AttribAmount; l += UpValue)
+					{Count++;}
+			}
+			else if(UpValue < 0.0)
+			{
+				for(l = Start; l > AttribAmount; l -= FloatAbs(UpValue))
+				{
+					{Count++;}
+				}
+			}
+			
+			// Purchase Check
+			if(Count >= UpLimit)
+			{
+				PrintToChat(p1, "[CMVM]That Upgrade is already maxed out!");
+			}
+			else if(Cost > GetEntProp(p1, Prop_Send, "m_nCurrency"))
+			{
+				PrintToChat(p1, "[CMVM]Not enough Credits.");
+			}
+			else if(AttribAmount + UpValue != Start)
+			{
+				if(IsPlayerAlive(p1))
+				{
+					new Creds = GetEntProp(p1, Prop_Send, "m_nCurrency");
+					Creds -= Cost;
+					Count++;
+					
+					if(Slot[p1] >= -1)
+					{
+						new String:weaponclass[128];
+						GetEntityClassname(Ent, weaponclass, sizeof(weaponclass));
+						if(StrEqual(weaponclass, "tf_powerup_bottle") && (StrEqual(info, "building instant upgrade") || StrEqual(info, "critboost") ||
+						StrEqual(info, "ubercharge") || StrEqual(info, "refill_ammo") || StrEqual(info, "recall")))
+						{
+							//TF2Attrib_SetByName(Ent, "ubercharge", 0.0);
+							//TF2Attrib_SetByName(Ent, "critboost", 0.0);
+							//TF2Attrib_SetByName(Ent, "recall", 0.0);
+							//TF2Attrib_SetByName(Ent, "refill_ammo", 0.0);
+							//TF2Attrib_SetByName(Ent, "building instant upgrade", 0.0);
+							
+							TF2Attrib_RemoveByName(Ent, "ubercharge");
+							TF2Attrib_RemoveByName(Ent, "critboost");
+							TF2Attrib_RemoveByName(Ent, "recall");
+							TF2Attrib_RemoveByName(Ent, "refill_ammo");
+							TF2Attrib_RemoveByName(Ent, "building instant upgrade");
+							SetEntProp(Ent, Prop_Send, "m_usNumCharges", RoundToFloor(AttribAmount + UpValue));
+						}
+						TF2Attrib_SetByName(Ent, info, AttribAmount + UpValue);
+					}
+					else
+					{
+						SetValue(p1, info, AttribAmount + UpValue);
+					}
+					
+					SetEntProp(p1, Prop_Send, "m_nCurrency", Creds);
+					SpentCreds[p1] += Cost;
+					PrintToChat(p1, "[CMVM]%s purchased! (Level %i/%i)", Value[0], Count, UpLimit);
+				}
+			}
+			DisplayMenuAtItem(BuildUpgradeMenu(), p1, GetMenuSelectionPosition(), 60);
+		}
+	}
+}
+
+// Function: Parse Stats
+ParseStats()
+{
+	if(kv != INVALID_HANDLE)
+	{
+		CloseHandle(kv);
+		kv = INVALID_HANDLE;
+	}
+	kv = CreateKeyValues("chaosmvm_upgrades");
+
+	new String:F[512], pos[3] = 0;
+	GetConVarString(cvar_ShopFile, F, sizeof(F));
+	BuildPath(Path_SM, path, sizeof(path), F);
+	
+	if(FileToKeyValues(kv, path))
+	{
+		new String:ClassName[2048], String:UpgradeName[128], String:MenuName[128];
+		KvGotoFirstSubKey(kv);
+		do
+		{
+			KvGetSectionName(kv, ClassName, sizeof(ClassName));
+			
+			KvGotoFirstSubKey(kv);
+			do
+			{
+				KvGetSectionName(kv, UpgradeName, sizeof(UpgradeName));
+				
+				new String:Sections[5][2048], String:Final[2048], Cost, Float:StatChange, UpLimit, Float:Start;
+				KvGetString(kv, "menuname", MenuName, sizeof(MenuName), "Upgrade");
+				Cost = KvGetNum(kv, "cost", 0);
+				StatChange = KvGetFloat(kv, "upgrade", 0.0);
+				UpLimit = KvGetNum(kv, "max", 0);
+				Start = KvGetFloat(kv, "start", 0.0);
+				
+				Format(Sections[0], 2048, "%s>%s>%s>%s", ClassName, UpgradeName, "menuname", MenuName);
+				Format(Sections[1], 2048, "%s>%s>%s>%i", ClassName, UpgradeName, "cost", Cost);
+				Format(Sections[2], 2048, "%s>%s>%s>%f", ClassName, UpgradeName, "upgrade", StatChange);
+				Format(Sections[3], 2048, "%s>%s>%s>%i", ClassName, UpgradeName, "max", UpLimit);
+				Format(Sections[4], 2048, "%s>%s>%s>%f", ClassName, UpgradeName, "start", Start);
+				ImplodeStrings(Sections, 5, "|", Final, sizeof(Final));
+				
+				if(TF2_GetClass(ClassName) != TFClass_Unknown)
+				{
+					SetArrayString(StatsClass, pos[0], Final);
+					pos[0]++;
+				}
+				
+				else if(StrEqual(ClassName, "custom"))
+				{
+					SetArrayString(StatsCustom, pos[1], Final);
+					pos[1]++;
+				}
+				
+				else
+				{
+					SetArrayString(StatsWeapon, pos[2], Final);
+					pos[2]++;
+				}
+			} while (KvGotoNextKey(kv));
+			
+			KvGoBack(kv);
+			
+		} while (KvGotoNextKey(kv));
+	}
+}
+
+// Function: Add Menu Attribute
+String:AddMenuAttrib(client, String:Upgrade[512], Cost, Float:UpValue, UpLimit, Float:Start, String:Details[512], SlotID)
+{
+	new E = -1, Address:A, Float:AttribAmount = 0.0;
+	if(SlotID < 0)
+		{E = client;}
+	else
+		{E = SlotID;}
+	
+	// Attribute Check
+	if(SlotID >= -1)
+	{
+		A = TF2Attrib_GetByName(E, Upgrade);
+		if(A == Address_Null)
+		{
+			TF2Attrib_SetByName(E, Upgrade, Start);
+			A = TF2Attrib_GetByName(E, Upgrade);
+			if(A == Address_Null)
+			{
+				new String:ERROR[1024] = "<Empty>";
+				return ERROR;
+			}
+		}
+		
+		AttribAmount = TF2Attrib_GetValue(A);
+		
+		if(AttribAmount == Start)
+			{TF2Attrib_RemoveByName(E, Upgrade);}
+	}
+	else
+	{
+		new String:u[256];
+		strcopy(u, 256, Upgrade);
+		AttribAmount = GetValue(client, u);
+	}
+	
+	// Attribute Counter
+	new Count = 0, Float:i = 0.0;
+	if(UpValue > 0.0)
+	{
+		for(i = Start; i < AttribAmount; i += UpValue)
+			{Count++;}
+	}
+	else if(UpValue < 0.0)
+	{
+		for(i = Start; i > AttribAmount; i -= FloatAbs(UpValue))
+		{
+			{Count++;}
+		}
+	}
+	
+	if(UpValue == 0.0)
+	{
+		new String:ERROR[1024] = "<Empty>";
+		return ERROR;
+	}
+	
+	// Returns the Menu Label for the Upgrade
+	new String:MenuLabel[1024];
+	Format(MenuLabel, sizeof(MenuLabel), "[%i/%i]%s ($%i)", Count, UpLimit, Details, Cost);
+	return MenuLabel;
+}
+
+// Function: Reset All Player Stats
+ResetAllPlayers()
+{
+	// Reset Stats
+	for(new i=1; i<=MaxClients; i++)
+	{
+		if(IsClientInGame(i))
+		{
+			SetEntProp(i, Prop_Send, "m_nCurrency", GetEntProp(i, Prop_Send, "m_nCurrency") + SpentCreds[i]);
+			SpentCreds[i] = 0;
+			ResetPlayer(i);
+		}
+	}
+}
+public Action:DelayResetPlayer(Handle:timer, any:userid)
+{
+	ResetPlayer(userid);
+}
+// Function: Reset Player Stats
+ResetPlayer(client)
+{
+	if(IsClientInGame(client))
+	{
+		ResetCustom(client);
+		if(IsPlayerAlive(client))
+		{
+			TF2_RespawnPlayer(client);
+		}
+	}
+}
+
+// Function: Reset Custom Stats
+ResetCustom(client)
+{
+	new String:FullBuffer[2048], String:Buffers[5][2048], String:SubBuffers[4][512], String:Value[5][256];
+	new String:info[256];
+	for(new i = 0; i < MAX_ATTRIBS; i++)
+	{
+		GetArrayString(StatsCustom, i, FullBuffer, sizeof(FullBuffer));
+		ExplodeString(FullBuffer, "|", Buffers, 5, 2048, false);
+		for(new j=0; j<5; j++)
+		{
+			ExplodeString(Buffers[j], ">", SubBuffers, 4, 512, false);
+			if(StrEqual(SubBuffers[0], "custom"))
+			{
+				strcopy(info, sizeof(info), SubBuffers[1]);
+				strcopy(Value[j], 256, SubBuffers[3]);
+			}
+			else
+			{
+				info = "";
+			}
+		}
+		
+		if(strlen(info) > 0)
+		{
+			SetValue(client, info, StringToFloat(Value[4]));
+		}
+	}
+}
+
+// Function: Save Stats
+SaveStats(client)
+{
+	if(IsClientInGame(client))
+	{
+		if(!IsFakeClient(client))
+		{
+			new String:FullBuffer[2048], String:Buffers[5][2048], String:SubBuffers[4][512], String:Value[5][128], String:WeaponList[256][8];
+			new TFClassType:Class = TF2_GetPlayerClass(client), String:info[256], Address:A;
+			for(new i=0; i<MAX_ATTRIBS; i++)
+			{
+				for(new j=0; j<3; j++)
+				{
+					info = "";
+					switch(j)
+					{
+						case 0:{GetArrayString(StatsClass, i, FullBuffer, sizeof(FullBuffer));}
+						case 1:{GetArrayString(StatsWeapon, i, FullBuffer, sizeof(FullBuffer));}
+						case 2:{GetArrayString(StatsCustom, i, FullBuffer, sizeof(FullBuffer));}
+					}
+					ExplodeString(FullBuffer, "|", Buffers, 5, 2048, false);
+					for(new k=0; k<5; k++)
+					{
+						new WepFound = false;
+						ExplodeString(Buffers[k], ">", SubBuffers, 4, 512, false);
+						switch(j)
+						{
+							case 0:
+							{
+								if(Class == TF2_GetClass(SubBuffers[0]))
+								{
+									strcopy(info, sizeof(info), SubBuffers[1]);
+									strcopy(Value[k], 128, SubBuffers[3]);
+									continue;
+								}
+							}
+							
+							case 1:
+							{
+								for(new l=0; l<=6; l++)
+								{
+									Slot[client] = -1;
+									if(l < 5)
+									{
+										Slot[client] = GetPlayerWeaponSlot(client, l);
+										if(Slot[client] <= -1)
+										{
+											switch(l)
+											{
+												case 0:
+												{
+													while((Slot[client] = FindEntityByClassname(Slot[client], "tf_wearable")) != -1)
+													{
+														new idx = GetEntProp(Slot[client], Prop_Send, "m_iItemDefinitionIndex");
+														if((idx == 405 || idx == 608) && GetEntPropEnt(Slot[client], Prop_Send, "m_hOwnerEntity") == client && !GetEntProp(Slot[client], Prop_Send, "m_bDisguiseWearable"))
+															{break;}
+													}
+												}
+												
+												case 1:
+												{
+													while((Slot[client] = FindEntityByClassname(Slot[client], "tf_wearable")) != -1)
+													{
+														new idx = GetEntProp(Slot[client], Prop_Send, "m_iItemDefinitionIndex");
+														if((idx == 405 || idx == 608 || idx == 57 || idx == 231 || idx == 642) && GetEntPropEnt(Slot[client], Prop_Send, "m_hOwnerEntity") == client && !GetEntProp(Slot[client], Prop_Send, "m_bDisguiseWearable"))
+															{break;}
+													}
+													
+													if(Slot[client] == -1)
+													{
+														while((Slot[client] = FindEntityByClassname(Slot[client], "tf_wearable_demoshield")) != -1)
+														{
+															new idx = GetEntProp(Slot[client], Prop_Send, "m_iItemDefinitionIndex");
+															if((idx == 131 || idx == 406 || idx == 1099) && GetEntPropEnt(Slot[client], Prop_Send, "m_hOwnerEntity") == client && !GetEntProp(Slot[client], Prop_Send, "m_bDisguiseWearable"))
+																{break;}
+														}
+													}
+												}
+											}
+										}
+										
+										if(IsValidEntity(Slot[client]))
+										{
+											new String:SlotID[8];
+											IntToString(GetEntProp(Slot[client], Prop_Send, "m_iItemDefinitionIndex"), SlotID, sizeof(SlotID));
+											ExplodeString(SubBuffers[0], " ; ", WeaponList, 256, 8, false);
+											for(new m=0; m<256; m++)
+											{
+												if(StrEqual(WeaponList[m], SlotID))
+												{
+													strcopy(info, sizeof(info), SubBuffers[1]);
+													strcopy(Value[k], 512, SubBuffers[3]);
+													WepFound = true;
+													break;
+												}
+											}
+										}
+									}
+									else
+									{
+										if(Slot[client] == -1)
+										{
+											while((Slot[client] = FindEntityByClassname(Slot[client], "tf_powerup_bottle")) != -1)
+											{
+												new idx = GetEntProp(Slot[client], Prop_Send, "m_iItemDefinitionIndex");
+												if((idx == 489 || idx == 1163 || idx == 30015 || idx == 30535) && GetEntPropEnt(Slot[client], Prop_Send, "m_hOwnerEntity") == client && !GetEntProp(Slot[client], Prop_Send, "m_bDisguiseWearable"))
+													{break;}
+											}
+											
+											if(IsValidEntity(Slot[client]))
+											{
+												new String:SlotID[8];
+												IntToString(GetEntProp(Slot[client], Prop_Send, "m_iItemDefinitionIndex"), SlotID, sizeof(SlotID));
+												ExplodeString(SubBuffers[0], " ; ", WeaponList, 256, 8, false);
+												for(new m=0; m<256; m++)
+												{
+													if(StrEqual(WeaponList[m], SlotID))
+													{
+														strcopy(info, sizeof(info), SubBuffers[1]);
+														strcopy(Value[k], 512, SubBuffers[3]);
+														WepFound = true;
+														break;
+													}
+												}
+											}
+										}
+									}
+									if(WepFound){break;}
+								}
+								if(WepFound){continue;}
+							}
+							
+							case 2:
+							{
+								if(StrEqual(SubBuffers[1], "custom"))
+								{
+									strcopy(info, sizeof(info), SubBuffers[1]);
+									strcopy(Value[k], 512, SubBuffers[3]);
+									continue;
+								}
+							}
+						}
+					}
+					
+					if(strlen(info) > 0)
+					{
+						new Float:Start, Ent, Count, Float:UpValue;
+						Count = 0;
+						UpValue = StringToFloat(Value[2]);
+						Start = StringToFloat(Value[4]);
+						switch(j)
+						{
+							case 0:{Ent = client;}
+							case 1:{Ent = Slot[client];}
+						}
+						if(j < 2)
+						{
+							A = TF2Attrib_GetByName(Ent, info);
+							if(A == Address_Null)
+							{
+								TF2Attrib_SetByName(Ent, info, Start);
+								A = TF2Attrib_GetByName(Ent, info);
+							}
+							new Float:v = TF2Attrib_GetValue(A);
+							
+							if(v != Start)
+							{
+								if(UpValue > 0.0)
+								{
+									for(new Float:x = Start; x < v; x += UpValue)
+										{Count++;}
+								}
+								else if(UpValue < 0.0)
+								{
+									for(new Float:x = Start; x > v; x += UpValue)
+										{Count++;}
+								}
+							}
+							else
+								{TF2Attrib_RemoveByName(Ent, info);}
+						}
+						else
+						{
+							if(GetValue(client, info) != Start)
+							{
+								if(UpValue > 0.0)
+								{
+									for(new Float:x = Start; x < GetValue(client, info); x += UpValue)
+										{Count++;}
+								}
+								else if(UpValue < 0.0)
+								{
+									for(new Float:x = Start; x > GetValue(client, info); x -= FloatAbs(UpValue))
+									{
+										{Count++;}
+									}
+								}
+							}
+						}
+						SetArrayCell(StatsBought, client, Count, i + (MAX_ATTRIBS*j));
+					}
+				}
+			}
+		}
+	}
+}
+
+// Function: Load Stats
+LoadStats(client)
+{
+	if(IsClientInGame(client))
+	{
+		if(!IsFakeClient(client))
+		{
+			new String:FullBuffer[2048], String:Buffers[5][2048], String:SubBuffers[4][512], String:Value[5][128];
+			new TFClassType:Class = TF2_GetPlayerClass(client), String:info[256];
+			for(new i=0; i<MAX_ATTRIBS; i++)
+			{
+				for(new j=0; j<3; j++)
+				{
+					info = "";
+					switch(j)
+					{
+						case 0:{GetArrayString(StatsClass, i, FullBuffer, sizeof(FullBuffer));}
+						case 1:{GetArrayString(StatsWeapon, i, FullBuffer, sizeof(FullBuffer));}
+						case 2:{GetArrayString(StatsCustom, i, FullBuffer, sizeof(FullBuffer));}
+					}
+					ExplodeString(FullBuffer, "|", Buffers, 5, 2048, false);
+					for(new k=0; k<5; k++)
+					{
+						new WepFound = false;
+						ExplodeString(Buffers[k], ">", SubBuffers, 4, 512, false);
+						switch(j)
+						{
+							case 0:
+							{
+								if(Class == TF2_GetClass(SubBuffers[0]))
+								{
+									strcopy(info, sizeof(info), SubBuffers[1]);
+									strcopy(Value[k], 128, SubBuffers[3]);
+									continue;
+								}
+							}
+							
+							case 1:
+							{
+								for(new l=0; l<=5; l++)
+								{
+									Slot[client] = -1;
+									if(l < 5)
+									{
+										Slot[client] = GetPlayerWeaponSlot(client, l);
+										if(Slot[client] < 0)
+										{
+											switch(l)
+											{
+												case 0:
+												{
+													while((Slot[client] = FindEntityByClassname(Slot[client], "tf_wearable")) != -1)
+													{
+														new idx = GetEntProp(Slot[client], Prop_Send, "m_iItemDefinitionIndex");
+														if((idx == 405 || idx == 608) && GetEntPropEnt(Slot[client], Prop_Send, "m_hOwnerEntity") == client && !GetEntProp(Slot[client], Prop_Send, "m_bDisguiseWearable"))
+															{break;}
+													}
+												}
+												
+												case 1:
+												{
+													while((Slot[client] = FindEntityByClassname(Slot[client], "tf_wearable")) != -1)
+													{
+														new idx = GetEntProp(Slot[client], Prop_Send, "m_iItemDefinitionIndex");
+														if((idx == 405 || idx == 608 || idx == 57 || idx == 231 || idx == 642) && GetEntPropEnt(Slot[client], Prop_Send, "m_hOwnerEntity") == client && !GetEntProp(Slot[client], Prop_Send, "m_bDisguiseWearable"))
+															{break;}
+													}
+													
+													if(Slot[client] == -1)
+													{
+														while((Slot[client] = FindEntityByClassname(Slot[client], "tf_wearable_demoshield")) != -1)
+														{
+															new idx = GetEntProp(Slot[client], Prop_Send, "m_iItemDefinitionIndex");
+															if((idx == 131 || idx == 406 || idx == 1099) && GetEntPropEnt(Slot[client], Prop_Send, "m_hOwnerEntity") == client && !GetEntProp(Slot[client], Prop_Send, "m_bDisguiseWearable"))
+																{break;}
+														}
+													}
+												}
+											}
+										}
+										
+										if(IsValidEntity(Slot[client]))
+										{
+											new String:WeaponList[512][8], String:SlotID[8];
+											IntToString(GetEntProp(Slot[client], Prop_Send, "m_iItemDefinitionIndex"), SlotID, sizeof(SlotID));
+											ExplodeString(SubBuffers[0], " ; ", WeaponList, 512, 8, false);
+											for(new m=0; m<256; m++)
+											{
+												if(StrEqual(WeaponList[m], SlotID))
+												{
+													strcopy(info, sizeof(info), SubBuffers[1]);
+													strcopy(Value[k], 512, SubBuffers[3]);
+													WepFound = true;
+													break;
+												}
+											}
+										}
+									}
+									else
+									{
+										if(Slot[client] == -1)
+										{
+											while((Slot[client] = FindEntityByClassname(Slot[client], "tf_powerup_bottle")) != -1)
+											{
+												new idx = GetEntProp(Slot[client], Prop_Send, "m_iItemDefinitionIndex");
+												if((idx == 489 || idx == 1163 || idx == 30015 || idx == 30535) && GetEntPropEnt(Slot[client], Prop_Send, "m_hOwnerEntity") == client && !GetEntProp(Slot[client], Prop_Send, "m_bDisguiseWearable"))
+													{break;}
+											}
+											
+											if(IsValidEntity(Slot[client]))
+											{
+												new String:WList[256][8], String:SlotID[8];
+												IntToString(GetEntProp(Slot[client], Prop_Send, "m_iItemDefinitionIndex"), SlotID, sizeof(SlotID));
+												ExplodeString(SubBuffers[0], " ; ", WList, 256, 8, false);
+												for(new m=0; m<256; m++)
+												{
+													if(StrEqual(WList[m], SlotID))
+													{
+														strcopy(info, sizeof(info), SubBuffers[1]);
+														strcopy(Value[k], 512, SubBuffers[3]);
+														WepFound = true;
+														break;
+													}
+												}
+											}
+										}
+									}
+									if(WepFound){break;}
+								}
+								if(WepFound){continue;}
+							}
+							
+							case 2:
+							{
+								if(StrEqual(SubBuffers[1], "custom"))
+								{
+									strcopy(info, sizeof(info), SubBuffers[1]);
+									strcopy(Value[k], 512, SubBuffers[3]);
+									continue;
+								}
+							}
+						}
+					}
+					
+					if(strlen(info) > 0)
+					{
+						new Float:Start, Ent, Count = 0, Float:UpValue = StringToFloat(Value[2]);
+						Start = StringToFloat(Value[4]);
+						Count = GetArrayCell(StatsBought, client, i + (MAX_ATTRIBS*j));
+						switch(j)
+						{
+							case 0,2:{Ent = client;}
+							case 1:{Ent = Slot[client];}
+						}
+						
+						if(Ent == -1)
+						{
+							continue;
+						}
+						
+						if(j < 2)
+						{
+							new String:NAME[128];
+							GetEntityClassname(Ent, NAME, sizeof(NAME));
+							
+							if(StrEqual(NAME, "tf_powerup_bottle") && (StrEqual(info, "building instant upgrade") || StrEqual(info, "critboost") ||
+							StrEqual(info, "ubercharge") || StrEqual(info, "refill_ammo") || StrEqual(info, "recall")))
+							{
+								TF2Attrib_RemoveByName(Ent, "ubercharge");
+								TF2Attrib_RemoveByName(Ent, "critboost");
+								TF2Attrib_RemoveByName(Ent, "recall");
+								TF2Attrib_RemoveByName(Ent, "refill_ammo");
+								TF2Attrib_RemoveByName(Ent, "building instant upgrade");
+								SetEntProp(Ent, Prop_Send, "m_usNumCharges", RoundToFloor(Start + (UpValue * float(Count))));
+							}
+							
+							if(Count != 0)
+							{
+								TF2Attrib_SetByName(Ent, info, Start + (UpValue * float(Count)));
+							}
+							else
+							{
+								TF2Attrib_RemoveByName(Ent, info);
+							}
+						}
+						else
+						{
+							SetValue(client, info, Start + (UpValue * float(Count)));
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// Timer: Redisplay Menu
+public Action:t_RedisplayMenu(Handle:timer, any:client)
+{
+	if(IsPlayerAlive(client))
+	{
+		new Handle:M = INVALID_HANDLE;
+		M = CreateMenu(Menu_UpgradeShop);
+		DisplayMenu(M, client, MENU_TIME_FOREVER);
+	}
+	
+	return Plugin_Handled;
+}
+
+// Timer: Redisplay Menu
+public Action:t_RedisplayShop(Handle:timer, any:client)
+{
+	if(IsPlayerAlive(client))
+	{
+		CreateShopPanel(client);
+	}
+	
+	return Plugin_Handled;
+}

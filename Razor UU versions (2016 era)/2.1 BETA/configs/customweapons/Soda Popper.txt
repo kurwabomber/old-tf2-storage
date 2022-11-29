@@ -1,0 +1,27 @@
+"The Soda Popper"
+{
+	"classes"
+	{
+		"scout"		"0"
+	}
+	"baseclass"		"soda_popper"
+	"baseindex"		"448"
+	"replace"		"448"
+	"quality"		"7"
+	"nobots"		"1"
+	"logname"		"custom"
+	"description"	"Insert Description"
+	"attributes"
+	{
+		"redux hype bonus"
+		{
+			"plugin"	"custom-attributes"
+			"value"		"5000"
+		}		
+		"weapon_allow_inspect"
+		{
+			"plugin"	"tf2attributes"
+			"value"		"1"
+		}
+	}
+}
